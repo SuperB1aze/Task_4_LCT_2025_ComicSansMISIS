@@ -1,6 +1,6 @@
 # Redis Configuration
-REDIS_PASS=redispassword
-REDIS_HOST=localhost
+REDIS_PASSWORD=redispassword
+REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_DB=0
 
@@ -8,7 +8,6 @@ REDIS_DB=0
 DB_NAME=dbname
 DB_USER=dbuser
 DB_PASSWORD=dbpassword
+DB_HOST=db
+DB_PORT=5432
 
-# Database settings based on server config
-DB_HOST=localhost
-DB_PORT=5433
