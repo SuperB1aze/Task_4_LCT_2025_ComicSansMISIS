@@ -6,7 +6,7 @@ export const ToolsPage = () => {
   const [searchCode, setSearchCode] = useState('')
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundImage: 'url(/assets/background.svg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <div className="p-8">
       <div className="max-w-7xl mx-auto">
         {/* Back to Home Button */}
         <Link to="/" className="mb-8 bg-blue-600 text-white px-6 py-3 rounded-full flex items-center gap-2 hover:bg-blue-700 transition-colors w-fit">
