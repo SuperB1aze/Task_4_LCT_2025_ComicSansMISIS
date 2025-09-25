@@ -29,7 +29,7 @@ export const ReportsPage = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 p-8">
+    <div className="p-8">
       <div className="max-w-6xl mx-auto">
         <div className="card p-8">
           {/* Header */}
