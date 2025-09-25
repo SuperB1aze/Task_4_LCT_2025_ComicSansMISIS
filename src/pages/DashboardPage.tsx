@@ -29,7 +29,7 @@ export const DashboardPage = () => {
         {/* Cards */}
         <div className="flex flex-wrap justify-center gap-6 mb-8">
           {/* Card 1 - Выдача инструментов */}
-          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] animate-in slide-in-from-bottom-4 fade-in duration-300 delay-0">
+          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] zoom-in-animation" style={{ animationDelay: '0s' }}>
             <img 
               src={handoverImage} 
               alt="Выдача инструментов"
@@ -42,7 +42,7 @@ export const DashboardPage = () => {
           </div>
 
           {/* Card 2 - Сдача инструментов */}
-          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] animate-in slide-in-from-bottom-4 fade-in duration-300 delay-0">
+          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] zoom-in-animation" style={{ animationDelay: '0.2s' }}>
             <img 
               src={changeImage} 
               alt="Сдача инструментов"
@@ -55,7 +55,7 @@ export const DashboardPage = () => {
           </div>
 
           {/* Card 3 - Q&A Reports */}
-          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] animate-in slide-in-from-bottom-4 fade-in duration-300 delay-0">
+          <div className="rounded-xl overflow-hidden relative group cursor-pointer hover:scale-105 transition-transform w-[500px] h-[470px] zoom-in-animation" style={{ animationDelay: '0.4s' }}>
             <img 
               src={questionsImage} 
               alt="Q&A Reports"
