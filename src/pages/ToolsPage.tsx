@@ -1,16 +1,9 @@
 import { useState } from 'react'
-import { ArrowLeft, QrCode, MoreHorizontal, TrendingUp } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export const ToolsPage = () => {
-  const [activeTab, setActiveTab] = useState<'matches' | 'scanning'>('matches')
   const [searchCode, setSearchCode] = useState('')
-
-  const handleSearch = () => {
-    if (searchCode.trim()) {
-      // Handle search logic
-    }
-  }
 
   return (
     <div className="min-h-screen p-8" style={{ backgroundImage: 'url(/assets/background.svg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
