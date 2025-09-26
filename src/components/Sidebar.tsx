@@ -5,8 +5,8 @@ import {
 
 const navigation = [
   { name: 'Главная', href: '/', icon: '/assets/menu.svg?v=2' },
-  { name: 'Сдача', href: '/tools', icon: '/assets/instruments.svg' },
   { name: 'Выдача', href: '/inventory', icon: '/assets/instruments.svg' },
+  { name: 'Сдача', href: '/tools', icon: '/assets/instruments.svg' },
   { name: 'Q&A', href: '/reports', icon: '/assets/fixwheel.svg' },
 ]
 

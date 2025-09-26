@@ -1,62 +1,154 @@
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Upload } from 'lucide-react'
 
 export const ToolsPage = () => {
-  const [searchCode, setSearchCode] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
+    }
+  }
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (event: React.DragEvent) => {
+    event.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault()
+    setIsDragOver(false)
+    
+    const files = event.dataTransfer.files
+    if (files.length > 0) {
+      const file = files[0]
+      if (file.type.startsWith('image/')) {
+        setSelectedFile(file)
+        const url = URL.createObjectURL(file)
+        setPreviewUrl(url)
+      } else {
+        alert('Пожалуйста, выберите изображение')
+      }
+    }
+  }
+
+  const handleUpload = () => {
+    if (selectedFile) {
+      // Здесь можно добавить логику загрузки файла на сервер
+      console.log('Загружаем файл:', selectedFile.name)
+      alert(`Файл "${selectedFile.name}" успешно загружен!`)
+    }
+  }
 
   return (
     <div className="p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Back to Home Button */}
-        <Link to="/" className="mb-8 bg-blue-600 text-white px-6 py-3 rounded-full flex items-center gap-2 hover:bg-blue-700 transition-colors w-fit">
-          <ArrowLeft className="w-5 h-5" />
-          На главную
-        </Link>
 
         {/* Main Title and Description */}
-        <div className="mb-12">
+        <div className="mb-6">
           <div className="flex items-end gap-8">
             <div>
               <h1 className="text-[52px] font-semibold text-[#262626] leading-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
                 Сдача<br />инструментов
               </h1>
             </div>
-            <p className="text-lg text-white max-w-md leading-relaxed ml-auto">
-              Проверка количества и состояния рабочих инструментов после их эксплуатации
-            </p>
           </div>
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* % Совпадения Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[448px] h-[300px] ml-[163px]">
-            <div className="px-6 py-2">
-              <img src="/assets/sovpadenia.svg" alt="% Совпадения" className="w-full h-auto" />
-            </div>
-            <div className="px-6 py-1">
-              <p className="text-gray-600 text-sm mb-2">Введите число</p>
-              <input
-                type="text"
-                value={searchCode}
-                onChange={(e) => setSearchCode(e.target.value)}
-                placeholder="Текст"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
 
-          {/* Сканирование Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[448px] h-[300px]">
-            <div className="px-6 py-2">
-              <img src="/assets/scan.svg" alt="Сканирование" className="w-full h-auto" />
+        {/* Сканирование Card */}
+        <div className="flex justify-center">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[800px] h-[500px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className="px-6 py-0 flex items-center justify-center flex-shrink-0">
+              <object 
+                data="/assets/loadphoto.svg" 
+                type="image/svg+xml"
+                width="720" 
+                height="255"
+                style={{ 
+                  maxWidth: '100%',
+                  height: 'auto'
+                }}
+              >
+                <img 
+                  src="/assets/loadphoto.svg" 
+                  alt="Сканирование" 
+                  width="720" 
+                  height="255"
+                />
+              </object>
             </div>
-            <div className="px-6 py-1 flex flex-col items-center justify-center h-full">
-              <div className="w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+
+            <div className="px-6 pt-0 pb-0 flex flex-col items-center justify-start flex-1">
+
+              {/* File Upload Area */}
+              <div className="w-full max-w-2xl flex flex-col items-center -mt-20">
+                <input
+                  type="file"
+                  id="card-file-upload"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <div
+                  className={`cursor-pointer flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-lg transition-all duration-200 w-full max-w-[calc(100%-25px)] h-64 ${
+                    isDragOver 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 hover:border-blue-400'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('card-file-upload')?.click()}
+                >
+                  <Upload className={`w-16 h-16 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <div className="text-center">
+                    <p className="text-2xl font-medium text-gray-700 mb-4">
+                      {isDragOver ? 'Отпустите файл здесь' : 'Перетащите фото сюда'}
+                    </p>
+                    <p className="text-lg text-gray-500">
+                      или нажмите для выбора файла
+                    </p>
+                    {selectedFile && (
+                      <p className="text-lg text-green-600 mt-4 font-medium">
+                        Выбран: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Preview */}
+                {previewUrl && (
+                  <div className="mt-6 flex flex-col items-center gap-4">
+                    <img
+                      src={previewUrl}
+                      alt="Предварительный просмотр"
+                      className="max-w-48 max-h-36 rounded object-cover shadow-lg"
+                    />
+                    <button
+                      onClick={handleUpload}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg text-base hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      <Upload className="w-5 h-5" />
+                      Загрузить
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   )
