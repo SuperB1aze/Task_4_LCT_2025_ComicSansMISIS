@@ -172,9 +172,10 @@ export const InventoryPage = () => {
                   />
                 </object>
               </div>
-              <div className="px-6 pt-0 pb-0 flex flex-col items-center justify-start flex-1">
-                {/* File Upload Area */}
-                <div className="w-full max-w-lg flex flex-col items-center -mt-8">
+              
+              {/* File Upload Area - перемещен выше */}
+              <div className="px-6 pt-0 pb-4 flex flex-col items-center flex-1">
+                <div className="w-full max-w-lg flex flex-col items-center">
                   <input
                     type="file"
                     id="card-file-upload"
@@ -183,7 +184,7 @@ export const InventoryPage = () => {
                     className="hidden"
                   />
                   <div
-                    className={`cursor-pointer flex flex-col items-center gap-2 p-8 border-2 border-dashed rounded-lg transition-all duration-200 w-[357px] h-40 ${
+                    className={`cursor-pointer flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-lg transition-all duration-200 w-[357px] h-32 ${
                       isDragOver 
                         ? 'border-blue-500 bg-blue-50' 
                         : 'border-gray-300 hover:border-blue-400'
@@ -193,16 +194,16 @@ export const InventoryPage = () => {
                     onDrop={handleDrop}
                     onClick={() => document.getElementById('card-file-upload')?.click()}
                   >
-                    <Upload className={`w-12 h-12 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <Upload className={`w-8 h-8 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
                     <div className="text-center">
-                      <p className="text-xl font-medium text-gray-700 mb-3">
+                      <p className="text-lg font-medium text-gray-700 mb-2">
                         {isDragOver ? 'Отпустите файл здесь' : 'Перетащите фото сюда'}
                       </p>
-                      <p className="text-base text-gray-500">
+                      <p className="text-sm text-gray-500">
                         или нажмите для выбора файла
                       </p>
                       {selectedFile && (
-                        <p className="text-base text-green-600 mt-3 font-medium">
+                        <p className="text-sm text-green-600 mt-2 font-medium">
                           Выбран: {selectedFile.name}
                         </p>
                       )}
@@ -211,11 +212,11 @@ export const InventoryPage = () => {
                   
                   {/* Preview */}
                   {previewUrl && (
-                    <div className="mt-2 flex flex-col items-center gap-1">
+                    <div className="mt-3 flex flex-col items-center gap-1">
                       <img
                         src={previewUrl}
                         alt="Предварительный просмотр"
-                        className="max-w-24 max-h-16 rounded object-cover shadow-sm"
+                        className="max-w-20 max-h-14 rounded object-cover shadow-sm"
                       />
                       <button
                         onClick={handleUpload}
