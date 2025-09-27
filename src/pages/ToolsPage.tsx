@@ -67,7 +67,7 @@ export const ToolsPage = () => {
 
 
         {/* Сканирование Card */}
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center min-h-[calc(100vh-300px)]">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[800px] h-[500px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <div className="px-6 py-0 flex items-center justify-center flex-shrink-0">
               <object 
@@ -92,7 +92,7 @@ export const ToolsPage = () => {
             <div className="px-6 pt-0 pb-0 flex flex-col items-center justify-start flex-1">
 
               {/* File Upload Area */}
-              <div className="w-full max-w-2xl flex flex-col items-center -mt-20">
+              <div className="w-full max-w-2xl flex flex-col items-center -mt-16">
                 <input
                   type="file"
                   id="card-file-upload"

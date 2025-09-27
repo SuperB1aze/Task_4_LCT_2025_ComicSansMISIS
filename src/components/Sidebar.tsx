@@ -1,7 +1,4 @@
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  Search
-} from 'lucide-react'
 
 const navigation = [
   { name: 'Главная', href: '/', icon: '/assets/menu.svg?v=2' },
@@ -15,15 +12,8 @@ export const Sidebar = () => {
 
   return (
     <div className="w-20 bg-white/90 backdrop-blur-sm min-h-screen flex flex-col items-center py-6 rounded-r-2xl border-r border-white/20 shadow-2xl">
-      {/* Search Button - Active */}
-      <div className="mb-8">
-        <button className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center hover:bg-primary-600 transition-colors duration-200">
-          <Search className="w-6 h-6 text-white" />
-        </button>
-      </div>
-      
       {/* Navigation Items */}
-      <nav className="space-y-6">
+      <nav className="space-y-6 mt-8">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href
           return (
