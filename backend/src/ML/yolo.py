@@ -4,8 +4,15 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-# 1. Загрузка модели
-model = YOLO("/Users/glebovmaksim/ЛЦТ/best.pt")   # путь к весам
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "ML", "best.pt")
+MEDIA_DIR = os.path.join(BASE_DIR, "media")
+
+
+os.makedirs(MEDIA_DIR, exist_ok=True)
+
+model = None
 
 # 2. Классы модели (в том порядке, в каком они в data.yaml)
 CLASS_NAMES = [
@@ -26,12 +33,27 @@ CLASS_NAMES = [
 class_thresholds = {cls: 0.5 for cls in CLASS_NAMES}  # дефолт = 0.5
 
 
-def run_inference(image_path, thresholds=None, output_file="predictions.json", vis_output="vis_result.jpg"):
+def _get_model():
+    """Ленивая загрузка модели"""
+    global model
+    if model is None:
+        model = YOLO(MODEL_PATH)
+    return model
+
+
+def run_inference(image_path, thresholds=None, output_file=None, vis_output=None):
     if thresholds is None:
         thresholds = class_thresholds
+    
+    if output_file is None:
+        output_file = os.path.join(MEDIA_DIR, "predictions.json")
+    if vis_output is None:
+        vis_output = os.path.join(MEDIA_DIR, "vis_result.jpg")
+
+    current_model = _get_model()
 
     # инференс
-    results = model.predict(image_path, imgsz=640, conf=0.01, verbose=False)
+    results = current_model.predict(image_path, imgsz=640, conf=0.01, verbose=False)
 
     predictions = []
     for r in results:
@@ -48,7 +70,6 @@ def run_inference(image_path, thresholds=None, output_file="predictions.json", v
             if score < thresholds.get(cls_name, 0.5):
                 continue
 
-            # записываем ТОЛЬКО числовой id
             predictions.append(int(cls_id))
 
         # === визуализация ===
@@ -61,17 +82,3 @@ def run_inference(image_path, thresholds=None, output_file="predictions.json", v
 
     return output_file, vis_output
 
-
-# ====== Пример использования ======
-if __name__ == "__main__":
-    custom_thresholds = {
-        "Отвертка «-»": 0.4,
-        "Пассатижи": 0.7,
-        "Шэрница": 0.6,
-        # остальные классы берут дефолт 0.5
-    }
-
-    path_to_image = "/Users/glebovmaksim/ЛЦТ/DSCN4981.JPG"  # картинка для теста
-    out_json, out_img = run_inference(path_to_image, thresholds=custom_thresholds)
-    print(f"Предсказания сохранены в {out_json}")
-    print(f"Визуализация сохранена в {out_img}")
