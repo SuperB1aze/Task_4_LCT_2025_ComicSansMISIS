@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.ML.yolo import CLASS_NAMES, run_inference
 from src.repo.predict_repos import ToolRepo, ToolKitRepo, ToolKitItemRepo
-from src.schemas.predict import PredictResponse, ToolInfo
+from src.schemas.predict import PredictResponse, ToolInfo, BatchImageResult, BatchPredictResponse
 from typing import List
 
 
@@ -120,6 +120,45 @@ class PredictService:
         
         return found_tools, hand_check
 
+    async def predict_batch(self, images: List[UploadFile], toolkit_id: int, confidence: float = 0.5) -> BatchPredictResponse:
+        """
+        Пакетная обработка изображений
+        """
+        results = []
+        successful_count = 0
+        failed_count = 0
+        
+        for image in images:
+            try:
+                result = await self.predict(image, toolkit_id, confidence)
+                
+                batch_result = BatchImageResult(
+                    filename=image.filename or "unknown",
+                    success=True,
+                    found_tools=result.found_tools,
+                    hand_check=result.hand_check,
+                    processed_image_url=result.processed_image_url,
+                    ml_predictions=result.ml_predictions
+                )
+                results.append(batch_result)
+                successful_count += 1
+                
+            except Exception as e:
+                batch_result = BatchImageResult(
+                    filename=image.filename or "unknown",
+                    success=False,
+                    found_tools=[],
+                    hand_check=True,
+                    error_message=str(e)
+                )
+                results.append(batch_result)
+                failed_count += 1
+        
+        return BatchPredictResponse(
+            successful_images=successful_count,
+            failed_images=failed_count,
+            results=results
+        )
 
     async def _cleanup_temp_files(self, *file_paths: str):
         """Удаляет временные файлы"""

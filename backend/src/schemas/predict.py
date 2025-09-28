@@ -22,3 +22,21 @@ class PredictRequest(BaseModel):
     """Запрос на предикт"""
     toolkit_id: int
     confidence: float = 0.5
+
+
+class BatchImageResult(BaseModel):
+    """Результат обработки одного изображения в пакете"""
+    filename: str
+    success: bool
+    found_tools: List[ToolInfo]
+    hand_check: bool
+    processed_image_url: str | None = None
+    ml_predictions: List[int] | None = None
+    error_message: str | None = None
+
+
+class BatchPredictResponse(BaseModel):
+    """Ответ сервиса пакетного предикта"""
+    successful_images: int
+    failed_images: int
+    results: List[BatchImageResult]
