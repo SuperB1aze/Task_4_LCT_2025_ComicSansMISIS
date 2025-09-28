@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from src.api.base import router as base_router
 from src.utils.redis_client import redis_client
 from src.utils.database import db_manager
+from src.utils.mock import create_mock_data
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -22,6 +23,10 @@ async def lifespan(app: FastAPI):
     try:
         await db_manager.create_engine()
         app.state.db_session_factory = db_manager.session_factory
+        
+        # Создание mock данных при старте приложения
+        await create_mock_data()
+        
     except Exception as e:
         print(f" Ошибка подключения к БД: {e}")
     
