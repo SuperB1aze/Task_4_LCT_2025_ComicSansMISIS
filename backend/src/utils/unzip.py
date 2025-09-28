@@ -20,6 +20,9 @@ def extract_images_from_zip(zip_file: UploadFile) -> List[UploadFile]:
         with zipfile.ZipFile(zip_buffer, 'r') as zip_ref:
             for file_info in zip_ref.filelist:
                 if not file_info.is_dir():
+                    if os.path.basename(file_info.filename).startswith('._'):
+                        continue
+                    
                     file_ext = os.path.splitext(file_info.filename)[1].lower()
                     if file_ext in supported_extensions:
                         file_content = zip_ref.read(file_info.filename)
