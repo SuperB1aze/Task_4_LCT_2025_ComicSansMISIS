@@ -20,6 +20,7 @@ class PredictService:
         Основной метод предикта
         """
         temp_image_path = await self._save_temp_image(image)
+        predictions_json_path = None
         
         try:
             final_image_filename = f"processed_{uuid.uuid4()}.jpg"
