@@ -1,7 +1,6 @@
 from pathlib import Path
 import sys
 from fastapi import FastAPI
-from sqlalchemy import exc
 import uvicorn
 from contextlib import asynccontextmanager
 
@@ -9,7 +8,8 @@ from src.api.base import router as base_router
 from src.utils.redis_client import redis_client
 from src.utils.database import db_manager
 from src.utils.mock import create_mock_data
-
+from src.api.predict import router as predict_router
+from src.api.media import router as media_router
 sys.path.append(str(Path(__file__).parent.parent))
 
 
@@ -50,6 +50,8 @@ app = FastAPI(
 )
 
 app.include_router(base_router)
+app.include_router(predict_router)
+app.include_router(media_router)
 
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)

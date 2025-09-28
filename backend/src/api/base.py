@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from src.utils.dependencies import get_redis, get_db_session
 from src.utils.redis_client import RedisClient
 from src.utils.database import check_postgres_connection
@@ -23,3 +23,4 @@ async def health(redis: RedisClient = Depends(get_redis)):
             "postgresql": "connected" if postgres_status else "disconnected"
         }
     }
+
