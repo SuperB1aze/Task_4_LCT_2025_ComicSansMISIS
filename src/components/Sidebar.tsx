@@ -4,14 +4,15 @@ const navigation = [
   { name: 'Главная', href: '/', icon: '/assets/menu.svg?v=2' },
   { name: 'Выдача', href: '/inventory', icon: '/assets/instruments.svg' },
   { name: 'Сдача', href: '/tools', icon: '/assets/instruments.svg' },
-  { name: 'Q&A', href: '/reports', icon: '/assets/fixwheel.svg' },
+  { name: 'Отчёты', href: '/reports', icon: '/assets/report_icon.svg' },
+  { name: 'Поддержка', href: '/support', icon: '/assets/support_logo.svg' },
 ]
 
 export const Sidebar = () => {
   const location = useLocation()
 
   return (
-    <div className="w-20 bg-white/90 backdrop-blur-sm min-h-screen flex flex-col items-center py-6 rounded-r-2xl border-r border-white/20 shadow-2xl">
+    <div className="bg-white/90 backdrop-blur-sm min-h-screen flex flex-col items-center py-6 rounded-r-2xl border-r border-white/20 shadow-2xl" style={{ width: '83px' }}>
       {/* Navigation Items */}
       <nav className="space-y-6 mt-8">
         {navigation.map((item) => {

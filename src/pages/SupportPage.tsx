@@ -1,9 +1,28 @@
 import { useState } from 'react'
-import { MessageCircle, Send, MoreVertical, Circle } from 'lucide-react'
+import { MessageCircle, Send, Circle, Paperclip } from 'lucide-react'
 
 export const SupportPage = () => {
   const [message, setMessage] = useState('')
   const [isOnline] = useState(true)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+    }
+  }
+
+  const handleSendMessage = () => {
+    if (message.trim() || selectedFile) {
+      console.log('Отправка сообщения:', message)
+      if (selectedFile) {
+        console.log('Прикрепленный файл:', selectedFile.name)
+      }
+      setMessage('')
+      setSelectedFile(null)
+    }
+  }
 
   const supportMessages = [
     {
@@ -51,11 +70,11 @@ export const SupportPage = () => {
   ]
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="min-h-screen flex items-center justify-center p-8">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Support Messages List */}
-        <div className="card p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="card p-6 rounded-3xl zoom-in-animation" style={{ animationDelay: '0.1s' }}>
+          <div className="mb-6">
             <div className="flex items-center space-x-3">
               <h2 className="text-xl font-semibold text-gray-900">
                 Оператор поддержки
@@ -70,14 +89,11 @@ export const SupportPage = () => {
                 </span>
               </div>
             </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600">
-              <MoreVertical size={20} />
-            </button>
           </div>
 
           <div className="space-y-4 mb-6">
-            {supportMessages.map((msg) => (
-              <div key={msg.id} className="card p-4 hover:shadow-md transition-shadow">
+            {supportMessages.map((msg, index) => (
+              <div key={msg.id} className="card p-4 hover:shadow-md transition-shadow rounded-2xl zoom-in-animation" style={{ animationDelay: `${0.3 + index * 0.1}s` }}>
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-medium text-gray-900">{msg.title}</h3>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -96,18 +112,28 @@ export const SupportPage = () => {
               </div>
             ))}
           </div>
-
-          <button className="btn btn-primary w-full">
-            Начать поддержку
-          </button>
         </div>
 
         {/* Chat Interface */}
-        <div className="card p-6 flex flex-col h-[600px]">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+        <div className="card p-6 flex flex-col h-[600px] rounded-3xl zoom-in-animation" style={{ animationDelay: '0.2s' }}>
+          <div className="mb-6 pb-4 border-b border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-primary-600" />
+              <div className="rounded-full flex items-center justify-center overflow-hidden bg-white border border-gray-200" style={{ width: '60px', height: '60px' }}>
+                <object 
+                  data="/assets/af_logo.svg" 
+                  type="image/svg+xml"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                >
+                  <img 
+                    src="/assets/af_logo.svg" 
+                    alt="Оператор поддержки"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                </object>
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Оператор поддержки</h3>
@@ -122,20 +148,18 @@ export const SupportPage = () => {
                 </div>
               </div>
             </div>
-            <button className="p-2 text-gray-400 hover:text-gray-600">
-              <MoreVertical size={16} />
-            </button>
           </div>
 
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-            {chatMessages.map((msg) => (
+            {chatMessages.map((msg, index) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} zoom-in-animation`}
+                style={{ animationDelay: `${0.4 + index * 0.1}s` }}
               >
                 <div
-                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                  className={`max-w-xs px-4 py-2 rounded-2xl ${
                     msg.sender === 'user'
                       ? 'bg-primary-600 text-white'
                       : 'bg-gray-100 text-gray-900'
@@ -153,18 +177,50 @@ export const SupportPage = () => {
           </div>
 
           {/* Message Input */}
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 zoom-in-animation" style={{ animationDelay: '0.7s' }}>
+            <input
+              type="file"
+              id="file-upload"
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+            />
+            <label
+              htmlFor="file-upload"
+              className="flex items-center justify-center p-3 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+            >
+              <Paperclip size={20} />
+            </label>
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Сообщение..."
               className="input flex-1"
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
-            <button className="btn btn-primary px-4">
+            <button 
+              onClick={handleSendMessage}
+              className="btn btn-primary px-4"
+            >
               <Send size={16} />
             </button>
           </div>
+          
+          {/* Selected File Display */}
+          {selectedFile && (
+            <div className="mt-2 p-2 bg-gray-50 rounded-lg flex items-center justify-between zoom-in-animation" style={{ animationDelay: '0.8s' }}>
+              <span className="text-sm text-gray-600 truncate">
+                📎 {selectedFile.name}
+              </span>
+              <button
+                onClick={() => setSelectedFile(null)}
+                className="text-gray-400 hover:text-gray-600 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

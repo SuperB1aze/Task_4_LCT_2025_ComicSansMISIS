@@ -20,6 +20,18 @@ export default {
           500: '#8E9099',
           900: '#262626',
         },
+        orange: {
+          100: '#FED7AA',
+          800: '#9A3412',
+        },
+        yellow: {
+          100: '#FEF3C7',
+          800: '#92400E',
+        },
+        green: {
+          100: '#D1FAE5',
+          800: '#065F46',
+        },
         background: '#FDFDFF',
         foreground: '#000000',
         card: '#FFFFFF',

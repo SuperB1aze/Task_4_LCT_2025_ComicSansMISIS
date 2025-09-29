@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 const handoverImage = '/assets/handover.svg'
 const changeImage = '/assets/change.svg'
 const questionsImage = '/assets/questions.svg'
+const techSupportImage = '/assets/tech_support.svg'
 
 export const DashboardPage = () => {
   const navigate = useNavigate()
-
   const handleCardClick = (path: string) => {
     navigate(path)
   }
@@ -32,44 +32,54 @@ export const DashboardPage = () => {
         <div className="flex flex-wrap justify-center gap-6 mb-8">
           {/* Card 1 - Выдача инструментов */}
           <div 
-            className="rounded-xl overflow-hidden relative cursor-pointer w-[500px] h-[470px] zoom-in-animation" 
+            className="relative cursor-pointer w-[380px] h-[470px] zoom-in-animation" 
             style={{ animationDelay: '0s' }}
             onClick={() => handleCardClick('/inventory')}
           >
             <img 
               src={handoverImage} 
               alt="Выдача инструментов"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-20 zoom-overlay"></div>
           </div>
 
           {/* Card 2 - Сдача инструментов */}
           <div 
-            className="rounded-xl overflow-hidden relative cursor-pointer w-[500px] h-[470px] zoom-in-animation" 
+            className="relative cursor-pointer w-[380px] h-[470px] zoom-in-animation" 
             style={{ animationDelay: '0.2s' }}
             onClick={() => handleCardClick('/tools')}
           >
             <img 
               src={changeImage} 
               alt="Сдача инструментов"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-20 zoom-overlay"></div>
           </div>
 
           {/* Card 3 - Q&A Reports */}
           <div 
-            className="rounded-xl overflow-hidden relative cursor-pointer w-[500px] h-[470px] zoom-in-animation" 
+            className="relative cursor-pointer w-[380px] h-[470px] zoom-in-animation" 
             style={{ animationDelay: '0.4s' }}
-            onClick={() => handleCardClick('/support')}
+            onClick={() => handleCardClick('/reports')}
           >
             <img 
               src={questionsImage} 
               alt="Q&A Reports"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-20 zoom-overlay"></div>
+          </div>
+
+          {/* Card 4 - Техническая поддержка */}
+          <div 
+            className="relative cursor-pointer w-[380px] h-[470px] zoom-in-animation" 
+            style={{ animationDelay: '0.6s' }}
+            onClick={() => handleCardClick('/support')}
+          >
+            <img 
+              src={techSupportImage} 
+              alt="Техническая поддержка"
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
 

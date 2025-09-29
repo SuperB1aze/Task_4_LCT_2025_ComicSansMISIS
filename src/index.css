@@ -7,13 +7,19 @@
 @layer base {
   * {
     @apply border-gray-200;
+    box-sizing: border-box;
+  }
+  
+  *:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 1px #0046E2;
   }
   
   body {
     @apply text-gray-900;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-image: url('./assets/background.svg?v=3');
+    background-image: url('/assets/background.svg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -69,8 +75,7 @@
   
   .zoom-in-animation:hover {
     transform: scale(1.02) !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
   }
   
   .zoom-in-animation:active {
@@ -98,7 +103,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url('./assets/background.svg?v=3');
+    background-image: url('/assets/background.svg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -108,7 +113,8 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50;
+    box-sizing: border-box;
   }
   
   .btn-primary {
@@ -128,6 +134,7 @@
   }
   
   .input {
-    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50;
+    box-sizing: border-box;
   }
 }
