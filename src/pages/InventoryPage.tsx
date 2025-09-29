@@ -297,22 +297,44 @@ export const InventoryPage = () => {
             </div>
 
           {/* Блок результата */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col zoom-in-animation" style={{ animationDelay: '0.3s', width: '569px', height: '130px' }}>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[448px] h-[345px] flex flex-col zoom-in-animation" style={{ animationDelay: '0.3s' }}>
+              {/* Header с result.svg */}
+              <div className="px-6 py-2 flex items-center justify-center">
+                <object 
+                  data="/assets/result.svg" 
+                  type="image/svg+xml"
+                  width="400" 
+                  height="89"
+                  style={{ 
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
+                >
+                  <img 
+                    src="/assets/result.svg" 
+                    alt="Результат" 
+                    width="400" 
+                    height="89"
+                  />
+                </object>
+              </div>
+
               {/* Content */}
-              <div className="px-6 py-4 flex-1 flex items-center justify-between">
+              <div className="px-6 pt-0 pb-4 flex-1 flex flex-col justify-start">
+              <div className="flex items-center justify-between px-2">
                 {/* Левая часть - круговая диаграмма */}
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center ml-5">
                   <CircularProgress percentage={matchPercentage} />
                 </div>
 
-                {/* Центральная часть - подпись "Совпадение" и процент */}
-                <div className="flex flex-col items-center">
-                  <h3 className="text-[#262626] mb-1" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: '20px', fontWeight: 'bold' }}>
+                {/* Правая часть - подпись "Совпадение" и процент */}
+                <div className="flex flex-col items-center mr-5">
+                  <h3 className="text-[#262626] mb-1" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontSize: '24px', fontWeight: 'bold' }}>
                     Совпадение
                   </h3>
                   <div className="text-center">
-                    <p className="text-xl font-bold text-[#0066FF]">{matchPercentage}%</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-base font-bold text-[#0066FF]">{matchPercentage}%</p>
+                    <p className="text-xs text-gray-500 mt-1">
                       {matchPercentage === 100 ? 'Полное совпадение' : 
                        matchPercentage >= 90 ? 'Высокое совпадение' :
                        matchPercentage >= 70 ? 'Хорошее совпадение' :
@@ -320,9 +342,10 @@ export const InventoryPage = () => {
                     </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Правая часть - кнопки с тестовыми данными */}
-                <div className="flex flex-col gap-2">
+                {/* Кнопки с тестовыми данными */}
+                <div className="mt-2 flex gap-2 justify-center">
                   <button 
                     className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                     onClick={() => setMatchPercentage(Math.floor(Math.random() * 50) + 50)}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MessageCircle, Send, Circle, Paperclip } from 'lucide-react'
+import { Send, Circle, Paperclip } from 'lucide-react'
 
 export const SupportPage = () => {
   const [message, setMessage] = useState('')
