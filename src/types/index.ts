@@ -56,6 +56,42 @@ export interface MLDetection {
   condition?: 'excellent' | 'good' | 'fair' | 'poor'
 }
 
+export interface DetectedTool {
+  id: string
+  name: string
+  confidence: number
+  quantity: number
+  boundingBox?: {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+  category?: string
+  condition?: 'excellent' | 'good' | 'fair' | 'poor'
+  serialNumber?: string
+}
+
+export interface RecognitionResult {
+  tools: DetectedTool[]
+  processingTime: number
+  imageId: string
+  timestamp: Date
+  totalDetections: number
+  processedImageUrl?: string
+  handCheck?: boolean
+}
+
+export interface ModelConfig {
+  modelPath: string
+  confidenceThreshold: number
+  maxDetections: number
+  inputSize: {
+    width: number
+    height: number
+  }
+}
+
 export interface ApiResponse<T> {
   data: T
   message?: string

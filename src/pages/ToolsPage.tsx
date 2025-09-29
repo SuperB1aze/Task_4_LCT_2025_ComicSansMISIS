@@ -1,24 +1,13 @@
 import { useState } from 'react'
 import { Upload, Plus, Check, X } from 'lucide-react'
+import { ImageUploadWithRecognition } from '../components/ImageUploadWithRecognition'
+import { DetectedTool } from '../types'
 
 export const ToolsPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
-  const [detectedTools, setDetectedTools] = useState([
-    { id: 1, name: 'Отвертка крестовая', quantity: 2 },
-    { id: 2, name: 'Плоскогубцы', quantity: 1 },
-    { id: 3, name: 'Молоток', quantity: 1 },
-    { id: 4, name: 'Ключ гаечный', quantity: 3 },
-    { id: 5, name: 'Отвертка плоская', quantity: 1 },
-    { id: 6, name: 'Клещи', quantity: 2 },
-    { id: 7, name: 'Рулетка', quantity: 1 },
-    { id: 8, name: 'Уровень', quantity: 1 },
-    { id: 9, name: 'Ножовка', quantity: 1 },
-    { id: 10, name: 'Дрель', quantity: 1 },
-    { id: 11, name: 'Шуруповерт', quantity: 1 },
-    { id: 12, name: 'Пассатижи', quantity: 2 }
-  ])
+  const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([])
   const [newToolName, setNewToolName] = useState('')
   const [newToolQuantity, setNewToolQuantity] = useState(1)
   const [showModal, setShowModal] = useState(false)
@@ -134,60 +123,13 @@ export const ToolsPage = () => {
               </object>
             </div>
             
-            {/* File Upload Area - перемещен выше */}
+            {/* File Upload Area с распознаванием */}
             <div className="px-6 pt-0 pb-4 flex flex-col items-center flex-1">
               <div className="w-full max-w-lg flex flex-col items-center">
-                <input
-                  type="file"
-                  id="card-file-upload"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
+                <ImageUploadWithRecognition
+                  onToolsDetected={(tools) => setDetectedTools(tools)}
+                  className="w-[357px] h-32"
                 />
-                <div
-                  className={`cursor-pointer flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-lg transition-all duration-200 w-[357px] h-32 ${
-                    isDragOver 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : 'border-gray-300 hover:border-blue-400'
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById('card-file-upload')?.click()}
-                >
-                  <Upload className={`w-8 h-8 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-                  <div className="text-center">
-                    <p className="text-lg font-medium text-gray-700 mb-2">
-                      {isDragOver ? 'Отпустите файл здесь' : 'Перетащите фото сюда'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      или нажмите для выбора файла
-                    </p>
-                    {selectedFile && (
-                      <p className="text-sm text-green-600 mt-2 font-medium">
-                        Выбран: {selectedFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Preview */}
-                {previewUrl && (
-                  <div className="mt-3 flex flex-col items-center gap-1">
-                    <img
-                      src={previewUrl}
-                      alt="Предварительный просмотр"
-                      className="max-w-20 max-h-14 rounded object-cover shadow-sm"
-                    />
-                    <button
-                      onClick={handleUpload}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
-                    >
-                      <Upload className="w-3 h-3" />
-                      Загрузить
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>

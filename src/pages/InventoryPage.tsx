@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Upload } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Check, Plus } from 'lucide-react'
+import { ImageUploadWithRecognition, ImageUploadWithRecognitionRef } from '../components/ImageUploadWithRecognition'
+import { DetectedTool } from '../types'
 
 // Компонент круговой диаграммы
 const CircularProgress = ({ percentage }: { percentage: number }) => {
@@ -57,52 +59,74 @@ const CircularProgress = ({ percentage }: { percentage: number }) => {
 
 export const InventoryPage = () => {
   const [searchCode, setSearchCode] = useState('')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
-  const [matchPercentage, setMatchPercentage] = useState(98) // Пока модель не обучена, используем тестовые данные
+  const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([])
+  const [matchPercentage, setMatchPercentage] = useState(0) // Начальное значение 0%
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanComplete, setScanComplete] = useState(false)
+  const [hasSelectedFile, setHasSelectedFile] = useState(false)
+  const imageUploadRef = useRef<ImageUploadWithRecognitionRef>(null)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+  // Принудительная очистка при загрузке страницы
+  React.useEffect(() => {
+    console.log('🔄 Страница загружена, очищаем все данные...')
+    setDetectedTools([])
+    setMatchPercentage(0)
+    setScanComplete(false)
+    setIsScanning(false)
+  }, [])
+
+  // Обновляем процент совпадения на основе найденных инструментов
+  const updateMatchPercentage = (tools: DetectedTool[]) => {
+    if (tools.length === 0) {
+      setMatchPercentage(0)
+    } else {
+      // Простая логика: чем больше инструментов найдено, тем выше процент
+      const basePercentage = Math.min(70 + (tools.length * 5), 98)
+      setMatchPercentage(basePercentage)
     }
   }
 
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(false)
+  // Обработка завершения сканирования
+  const handleScanComplete = async () => {
+    if (!imageUploadRef.current) {
+      console.log('❌ imageUploadRef не доступен')
+      return
+    }
     
-    const files = event.dataTransfer.files
-    if (files.length > 0) {
-      const file = files[0]
-      if (file.type.startsWith('image/')) {
-        setSelectedFile(file)
-        const url = URL.createObjectURL(file)
-        setPreviewUrl(url)
-      } else {
-        alert('Пожалуйста, выберите изображение')
-      }
+    console.log('🚀 Запускаем распознавание...')
+    console.log('🧹 Очищаем предыдущие результаты...')
+    setDetectedTools([]) // Очищаем список инструментов
+    setMatchPercentage(0) // Сбрасываем процент совпадения
+    setScanComplete(false) // Сбрасываем статус завершения
+    
+    try {
+      await imageUploadRef.current.startRecognition()
+    } catch (error) {
+      console.error('❌ Ошибка при запуске распознавания:', error)
     }
   }
 
-  const handleUpload = () => {
-    if (selectedFile) {
-      console.log('Загружаем файл:', selectedFile.name)
-      alert(`Файл "${selectedFile.name}" успешно загружен!`)
-    }
+  // Обработка начала сканирования
+  const handleStartScan = () => {
+    setIsScanning(true)
+    setScanComplete(false)
+    console.log('Начато сканирование...')
+  }
+
+  // Обработка добавления инструмента вручную
+  const handleAddManual = () => {
+    console.log('Добавление инструмента вручную...')
+    // Здесь можно добавить модальное окно для добавления инструмента
+  }
+
+  // Обработка удаления фотографии
+  const handleFileRemoved = () => {
+    console.log('🗑️ Фото удалено, сбрасываем состояние...')
+    setDetectedTools([]) // Обнуляем список инструментов
+    setMatchPercentage(0) // Сбрасываем процент совпадения
+    setScanComplete(false) // Сбрасываем статус завершения сканирования
+    setIsScanning(false) // Сбрасываем статус сканирования
+    setHasSelectedFile(false) // Сбрасываем статус выбранного файла
   }
 
   return (
@@ -173,60 +197,28 @@ export const InventoryPage = () => {
                 </object>
               </div>
               
-              {/* File Upload Area - перемещен выше */}
+              {/* File Upload Area с распознаванием */}
               <div className="px-6 pt-0 pb-4 flex flex-col items-center flex-1">
                 <div className="w-full max-w-lg flex flex-col items-center">
-                  <input
-                    type="file"
-                    id="card-file-upload"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
+                  <ImageUploadWithRecognition
+                    ref={imageUploadRef}
+                    onToolsDetected={(tools, confidence) => {
+                      console.log('📥 Получены инструменты в InventoryPage:', tools, 'Уверенность:', confidence)
+                      console.log('📊 Количество инструментов:', tools.length)
+                      console.log('🔍 Детали инструментов:', tools.map(t => ({ name: t.name, id: t.id })))
+                      setDetectedTools(tools)
+                      if (confidence) {
+                        setMatchPercentage(Math.round(confidence * 100))
+                      } else {
+                        updateMatchPercentage(tools)
+                      }
+                      setScanComplete(true)
+                    }}
+                    onScanStart={handleStartScan}
+                    onFileSelected={(hasFile) => setHasSelectedFile(hasFile)}
+                    onFileRemoved={handleFileRemoved}
+                    className="w-[357px] h-32"
                   />
-                  <div
-                    className={`cursor-pointer flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-lg transition-all duration-200 w-[357px] h-32 ${
-                      isDragOver 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 hover:border-blue-400'
-                    }`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById('card-file-upload')?.click()}
-                  >
-                    <Upload className={`w-8 h-8 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-                    <div className="text-center">
-                      <p className="text-lg font-medium text-gray-700 mb-2">
-                        {isDragOver ? 'Отпустите файл здесь' : 'Перетащите фото сюда'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        или нажмите для выбора файла
-                      </p>
-                      {selectedFile && (
-                        <p className="text-sm text-green-600 mt-2 font-medium">
-                          Выбран: {selectedFile.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Preview */}
-                  {previewUrl && (
-                    <div className="mt-3 flex flex-col items-center gap-1">
-                      <img
-                        src={previewUrl}
-                        alt="Предварительный просмотр"
-                        className="max-w-20 max-h-14 rounded object-cover shadow-sm"
-                      />
-                      <button
-                        onClick={handleUpload}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
-                      >
-                        <Upload className="w-3 h-3" />
-                        Загрузить
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -258,39 +250,49 @@ export const InventoryPage = () => {
                 </object>
               </div>
               <div className="px-6 pt-0 pb-4 flex-1 -mt-8 flex flex-col justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-900">Отвертка крестовая</span>
-                    <span className="text-sm text-gray-500">2 шт.</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-900">Плоскогубцы</span>
-                    <span className="text-sm text-gray-500">1 шт.</span>
-                  </div>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {detectedTools.length > 0 ? (
+                    detectedTools.map((tool) => (
+                      <div key={tool.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">{tool.name}</span>
+                          {tool.serialNumber && (
+                            <span className="text-xs text-gray-500">№ {tool.serialNumber}</span>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-500">{tool.quantity} шт.</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">Загрузите изображение для распознавания инструментов</p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Buttons */}
-                <div className="flex gap-2 mt-auto">
-                  <button 
-                    className="flex-1 px-3 rounded-full text-xs font-medium transition-colors"
-                    style={{ 
-                      backgroundColor: '#F3F4F6', 
-                      color: '#262626',
-                      height: '48px'
-                    }}
-                    onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#E5E7EB'}
-                    onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#F3F4F6'}
+                <div className="space-y-2 mt-auto">
+                  {/* Кнопка добавления инструмента */}
+                  <button
+                    onClick={handleAddManual}
+                    className="w-full flex items-center justify-center space-x-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
                   >
-                    Завершить сканирование
+                    <Plus size={16} />
+                    <span>Добавить инструмент вручную</span>
                   </button>
+                  
+                  {/* Кнопка завершения сканирования */}
                   <button 
-                    className="flex-1 px-3 rounded-full text-xs font-medium text-white transition-colors hover:opacity-90"
-                    style={{ 
-                      backgroundColor: '#0046E2',
-                      height: '48px'
-                    }}
+                    onClick={handleScanComplete}
+                    disabled={!hasSelectedFile || isScanning}
+                    className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    Добавить вручную
+                    <Check size={16} />
+                    <span>
+                      {isScanning ? 'Сканирование...' : 
+                       scanComplete ? 'Сканирование завершено' : 
+                       'Завершить сканирование'}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -344,21 +346,6 @@ export const InventoryPage = () => {
                 </div>
               </div>
 
-                {/* Кнопки с тестовыми данными */}
-                <div className="mt-2 flex gap-2 justify-center">
-                  <button 
-                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
-                    onClick={() => setMatchPercentage(Math.floor(Math.random() * 50) + 50)}
-                  >
-                    Тест: 50-99%
-                  </button>
-                  <button 
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors"
-                    onClick={() => setMatchPercentage(100)}
-                  >
-                    Тест: 100%
-                  </button>
-                </div>
               </div>
             </div>
           </div>
