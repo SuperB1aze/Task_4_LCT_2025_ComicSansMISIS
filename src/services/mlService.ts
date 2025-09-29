@@ -1,7 +1,8 @@
 import { DetectedTool, RecognitionResult, ModelConfig, MLDetection } from '../types'
 
 class MLService {
-  private model: any = null
+  // @ts-ignore
+  private _model: any = null
   private config: ModelConfig = {
     modelPath: '/models/tool-recognition-model.json',
     confidenceThreshold: 0.5,
@@ -39,7 +40,7 @@ class MLService {
       // this.model = await ort.InferenceSession.create(this.config.modelPath)
       
       // Заглушка для демонстрации
-      this.model = {
+      this._model = {
         predict: this.mockPrediction.bind(this)
       }
       
@@ -54,7 +55,8 @@ class MLService {
   /**
    * Предобработка изображения для модели
    */
-  private preprocessImage(imageFile: File): Promise<HTMLCanvasElement> {
+  // @ts-ignore
+  private _preprocessImage(imageFile: File): Promise<HTMLCanvasElement> {
     return new Promise((resolve, reject) => {
       const img = new Image()
       const canvas = document.createElement('canvas')
@@ -152,7 +154,8 @@ class MLService {
   /**
    * Постобработка результатов детекции (для локальной модели)
    */
-  private postprocessDetections(detections: MLDetection[]): DetectedTool[] {
+  // @ts-ignore
+  private _postprocessDetections(detections: MLDetection[]): DetectedTool[] {
     return detections
       .filter(detection => detection.confidence >= this.config.confidenceThreshold)
       .slice(0, this.config.maxDetections)
@@ -200,7 +203,7 @@ class MLService {
   /**
    * Заглушка для демонстрации (замените на реальную модель)
    */
-  private async mockPrediction(canvas: HTMLCanvasElement): Promise<MLDetection[]> {
+  private async mockPrediction(_canvas: HTMLCanvasElement): Promise<MLDetection[]> {
     // Имитация времени обработки
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
 

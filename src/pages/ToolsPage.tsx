@@ -1,67 +1,21 @@
 import { useState } from 'react'
-import { Upload, Plus, Check, X } from 'lucide-react'
+import { Plus, Check, X } from 'lucide-react'
 import { ImageUploadWithRecognition } from '../components/ImageUploadWithRecognition'
 import { DetectedTool } from '../types'
 
 export const ToolsPage = () => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [isDragOver, setIsDragOver] = useState(false)
   const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([])
   const [newToolName, setNewToolName] = useState('')
   const [newToolQuantity, setNewToolQuantity] = useState(1)
   const [showModal, setShowModal] = useState(false)
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-    }
-  }
-
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(true)
-  }
-
-  const handleDragLeave = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(false)
-  }
-
-  const handleDrop = (event: React.DragEvent) => {
-    event.preventDefault()
-    setIsDragOver(false)
-    
-    const files = event.dataTransfer.files
-    if (files.length > 0) {
-      const file = files[0]
-      if (file.type.startsWith('image/')) {
-        setSelectedFile(file)
-        const url = URL.createObjectURL(file)
-        setPreviewUrl(url)
-      } else {
-        alert('Пожалуйста, выберите изображение')
-      }
-    }
-  }
-
-  const handleUpload = () => {
-    if (selectedFile) {
-      // Здесь можно добавить логику загрузки файла на сервер
-      console.log('Загружаем файл:', selectedFile.name)
-      alert(`Файл "${selectedFile.name}" успешно загружен!`)
-    }
-  }
-
   const addNewTool = () => {
     if (newToolName.trim()) {
-      const newTool = {
-        id: Date.now(),
+      const newTool: DetectedTool = {
+        id: `manual_${Date.now()}`,
         name: newToolName.trim(),
-        quantity: newToolQuantity
+        quantity: newToolQuantity,
+        confidence: 1.0
       }
       setDetectedTools([...detectedTools, newTool])
       setNewToolName('')
@@ -70,7 +24,7 @@ export const ToolsPage = () => {
     }
   }
 
-  const removeTool = (id: number) => {
+  const removeTool = (id: string) => {
     setDetectedTools(tools => tools.filter(tool => tool.id !== id))
   }
 
