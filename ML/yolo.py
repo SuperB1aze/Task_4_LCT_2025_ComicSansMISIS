@@ -37,11 +37,56 @@ CLASS_NAMES = [
 class_thresholds = {cls: 0.5 for cls in CLASS_NAMES}  # дефолт = 0.5
 
 
+def _download_model():
+    """Скачивает модель если она отсутствует"""
+    if os.path.exists(MODEL_PATH):
+        return True
+    
+    print(f"📥 Скачиваем модель...")
+    try:
+        # Создаем директорию если не существует
+        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+        
+        # Попробуем скачать с разных источников
+        model_urls = [
+            "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt",  # Стандартная модель YOLO
+            "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt",  # Альтернативная модель
+        ]
+        
+        for model_url in model_urls:
+            try:
+                print(f"Пробуем скачать с: {model_url}")
+                import urllib.request
+                urllib.request.urlretrieve(model_url, MODEL_PATH)
+                print(f"✅ Модель скачана: {MODEL_PATH}")
+                return True
+            except Exception as e:
+                print(f"❌ Ошибка скачивания с {model_url}: {e}")
+                continue
+        
+        print(f"❌ Не удалось скачать модель ни с одного источника")
+        return False
+        
+    except Exception as e:
+        print(f"❌ Общая ошибка скачивания модели: {e}")
+        return False
+
 def _get_model():
     """Ленивая загрузка модели"""
     global model
     if model is None:
-        model = YOLO(MODEL_PATH)
+        # Сначала пытаемся скачать модель если её нет
+        if not os.path.exists(MODEL_PATH):
+            if not _download_model():
+                print(f"⚠️ Не удалось загрузить модель")
+                return None
+        
+        try:
+            model = YOLO(MODEL_PATH)
+            print(f"✅ Модель загружена: {MODEL_PATH}")
+        except Exception as e:
+            print(f"❌ Ошибка загрузки модели: {e}")
+            return None
     return model
 
 
