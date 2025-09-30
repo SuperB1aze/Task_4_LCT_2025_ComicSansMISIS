@@ -35,8 +35,8 @@ class MLService {
       }
       
       // Временный fallback для тестирования
-      console.warn('⚠️ Backend URL не настроен для production. Используется deployed backend.')
-      return 'https://task-4-lct-2025-comicsansmisis.onrender.com'
+      console.warn('⚠️ Backend URL не настроен для production. Используется localhost.')
+      return 'http://localhost:8000'
     }
     
     // Для development используем localhost
