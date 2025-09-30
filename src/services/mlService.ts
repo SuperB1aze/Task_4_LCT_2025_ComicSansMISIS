@@ -34,11 +34,9 @@ class MLService {
         return envUrl
       }
       
-      // Fallback - для production нужно указать URL вашего deployed backend
-      console.warn('⚠️ Backend URL не настроен для production. Используется localhost.')
-      console.warn('⚠️ Для production разверните backend на Railway, Render или Heroku.')
-      console.warn('⚠️ Затем установите переменную окружения VITE_API_BASE_URL в Vercel.')
-      return 'http://localhost:8000'
+      // Временный fallback для тестирования
+      console.warn('⚠️ Backend URL не настроен для production. Используется deployed backend.')
+      return 'https://task-4-lct-2025-comicsansmisis.onrender.com'
     }
     
     // Для development используем localhost
