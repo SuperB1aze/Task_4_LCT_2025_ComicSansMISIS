@@ -213,8 +213,14 @@ export const InventoryPage = () => {
                         updateMatchPercentage(tools)
                       }
                       setScanComplete(true)
+                      setIsScanning(false) // Сбрасываем статус сканирования
                     }}
                     onScanStart={handleStartScan}
+                    onScanError={(error) => {
+                      console.error('❌ Ошибка сканирования:', error)
+                      setIsScanning(false) // Сбрасываем статус сканирования при ошибке
+                      setScanComplete(false)
+                    }}
                     onFileSelected={(hasFile) => setHasSelectedFile(hasFile)}
                     onFileRemoved={handleFileRemoved}
                     className="w-[357px] h-32"

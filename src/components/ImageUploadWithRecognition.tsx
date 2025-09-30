@@ -6,6 +6,7 @@ import { RecognitionResultsDialog } from './RecognitionResultsDialog'
 interface ImageUploadWithRecognitionProps {
   onToolsDetected?: (tools: any[], confidence?: number) => void
   onScanStart?: () => void
+  onScanError?: (error: string) => void
   onFileSelected?: (hasFile: boolean) => void
   onFileRemoved?: () => void
   className?: string
@@ -19,6 +20,7 @@ export interface ImageUploadWithRecognitionRef {
 export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionRef, ImageUploadWithRecognitionProps>(({
   onToolsDetected,
   onScanStart,
+  onScanError,
   onFileSelected,
   onFileRemoved,
   className = '',
@@ -108,10 +110,14 @@ export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionR
         onToolsDetected?.(tools, avgConfidence)
       } else {
         console.log('❌ Инструменты не найдены')
+        // Передаем пустой массив чтобы сбросить состояние сканирования
+        onToolsDetected?.([])
       }
       // Убираем показ диалога результатов
     } catch (err) {
       console.error('Ошибка распознавания:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка распознавания'
+      onScanError?.(errorMessage)
     }
   }
 
