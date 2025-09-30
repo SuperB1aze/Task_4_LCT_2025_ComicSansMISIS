@@ -64,15 +64,11 @@ def _get_model():
     """Ленивая загрузка модели"""
     global model
     if model is None:
-        # Сначала пытаемся скачать модель если её нет
-        if not os.path.exists(MODEL_PATH):
-            if not _download_model():
-                print(f"⚠️ Не удалось загрузить модель")
-                return None
-        
         try:
-            model = YOLO(MODEL_PATH)
-            print(f"✅ Модель загружена: {MODEL_PATH}")
+            # Используем встроенную модель YOLO (автоматически скачивается)
+            print(f"🔄 Загружаем стандартную модель YOLO...")
+            model = YOLO('yolov8n.pt')  # Автоматически скачивается при первом использовании
+            print(f"✅ Модель YOLO загружена успешно")
         except Exception as e:
             print(f"❌ Ошибка загрузки модели: {e}")
             return None
@@ -116,7 +112,12 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
         # Собираем все детекции с применением порога
         valid_detections = []
         for i, cls_id in enumerate(classes):
-            cls_name = CLASS_NAMES[cls_id]
+            # Получаем имя класса из модели или используем наш список
+            if cls_id < len(CLASS_NAMES):
+                cls_name = CLASS_NAMES[cls_id]
+            else:
+                cls_name = f"class_{cls_id}"
+            
             score = float(scores[i])
 
             # кастомный порог на класс
@@ -125,6 +126,7 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
 
             valid_detections.append({
                 'class_id': int(cls_id),
+                'class_name': cls_name,
                 'score': score,
                 'box': boxes[i]
             })
