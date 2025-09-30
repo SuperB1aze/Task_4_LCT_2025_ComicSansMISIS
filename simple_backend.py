@@ -16,9 +16,11 @@ import uvicorn
 
 # Добавляем путь к модулям
 sys.path.append(str(Path(__file__).parent / "backend-repo" / "backend" / "src"))
+sys.path.append(str(Path(__file__).parent))  # Добавляем текущую директорию
 
 try:
     from ML.yolo import CLASS_NAMES, run_inference
+    print("✅ ML модуль успешно импортирован")
 except ImportError as e:
     print(f"Ошибка импорта YOLO: {e}")
     print(f"Текущая директория: {Path(__file__).parent}")
@@ -150,7 +152,22 @@ if __name__ == "__main__":
     
     print("🚀 Запуск упрощенного backend'а...")
     
-    print("📁 Модель:", "backend-repo/backend/src/ML/best.pt")
+    # Проверяем наличие модели в разных местах
+    model_paths = [
+        "ML/best.pt",
+        "backend-repo/backend/src/ML/best.pt"
+    ]
+    
+    model_path = None
+    for path in model_paths:
+        if Path(path).exists():
+            model_path = path
+            break
+    
+    if model_path:
+        print("📁 Модель:", model_path)
+    else:
+        print("⚠️ Модель не найдена!")
     
     print(f"🌐 API будет доступен на порту: {port}")
     print(f"📖 Документация: http://localhost:{port}/docs")
