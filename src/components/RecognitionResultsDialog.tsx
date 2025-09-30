@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { X, Check, AlertCircle, Clock, Target } from 'lucide-react'
 import { DetectedTool, RecognitionResult } from '../types'
 

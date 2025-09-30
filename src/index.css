@@ -62,37 +62,52 @@
     }
   }
   
+  /* Slide down animation */
+  @keyframes slideDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  
   .zoom-in-animation {
     animation: zoomIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     transform: scale(0);
     opacity: 0;
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                box-shadow 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    transition: none !important;
     will-change: transform;
     backface-visibility: hidden;
     transform-style: preserve-3d;
   }
   
-  .zoom-in-animation:hover {
-    transform: scale(1.02) !important;
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  }
-  
-  .zoom-in-animation:active {
-    transform: scale(1.01) !important;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
-  }
   
   .animate-fade-in-up {
     animation: fadeInUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     transform: translateY(30px);
     opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-                box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    transition: none !important;
     will-change: transform;
     backface-visibility: hidden;
     transform-style: preserve-3d;
   }
+  
+  
+  .animate-slide-down {
+    animation: slideDown 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: none !important;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+  
+  
   
   
   /* Принудительное обновление фона */

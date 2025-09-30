@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Send, Circle, Paperclip } from 'lucide-react'
 
 export const SupportPage = () => {

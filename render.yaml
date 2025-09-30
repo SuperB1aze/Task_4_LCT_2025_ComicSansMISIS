@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: toolfinder-backend
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python simple_backend.py
-    envVars:
-      - key: PORT
-        value: 10000

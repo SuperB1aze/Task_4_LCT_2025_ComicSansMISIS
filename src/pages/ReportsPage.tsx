@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { BarChart3, Filter, Eye, ChevronDown } from 'lucide-react'
 
 export const ReportsPage = () => {

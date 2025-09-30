@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import { Upload, Camera, Loader2, AlertCircle, CheckCircle, X } from 'lucide-react'
 import { useToolRecognition } from '../hooks/useToolRecognition'
 import { RecognitionResultsDialog } from './RecognitionResultsDialog'
@@ -9,6 +9,7 @@ interface ImageUploadWithRecognitionProps {
   onScanError?: (error: string) => void
   onFileSelected?: (hasFile: boolean) => void
   onFileRemoved?: () => void
+  onImageAdded?: (imageUrl: string, fileName: string) => void
   className?: string
   disabled?: boolean
 }
@@ -23,6 +24,7 @@ export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionR
   onScanError,
   onFileSelected,
   onFileRemoved,
+  onImageAdded,
   className = '',
   disabled = false
 }, ref) => {
@@ -59,6 +61,7 @@ export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionR
     setPreviewUrl(url)
     clearResults() // Очищаем предыдущие результаты
     onFileSelected?.(true)
+    onImageAdded?.(url, file.name) // Уведомляем родительский компонент о добавлении изображения
   }
 
   const handleDragOver = (event: React.DragEvent) => {
@@ -211,49 +214,14 @@ export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionR
             <p className="text-sm text-gray-500 mb-4">
               {getSubText()}
             </p>
-            {selectedFile && (
-              <div className="flex items-center gap-2 mt-2">
-                <p className="text-sm text-blue-600 font-medium">
-                  Выбран: {selectedFile.name}
-                </p>
-                <button
-                  onClick={handleRemovePhoto}
-                  className="text-red-500 hover:text-red-700 transition-colors"
-                  title="Удалить фото"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
             
           </div>
         </div>
         
         {/* Область кнопок - всегда видна */}
         <div className="mt-4 flex flex-col items-center gap-3">
-          {/* Preview */}
-          {previewUrl && (
-            <img
-              src={previewUrl}
-              alt="Предварительный просмотр"
-              className="max-w-32 max-h-24 rounded-lg object-cover shadow-sm border"
-            />
-          )}
-          
           {/* Область кнопок с фиксированной высотой */}
           <div className="flex gap-2 flex-wrap justify-center min-h-[60px] items-center">
-            {/* Кнопка выбора файла - всегда видна когда не обрабатывается */}
-            {!isProcessing && !detectedTools.length && (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 transition-colors flex items-center gap-2 shadow-lg"
-              >
-                <Camera className="w-5 h-5" />
-                {selectedFile ? 'Выбрать другое фото' : 'Выбрать фото'}
-              </button>
-            )}
-            
             {/* Кнопка просмотра результатов - когда есть результаты */}
             {detectedTools.length > 0 && (
               <button
@@ -265,26 +233,6 @@ export const ImageUploadWithRecognition = forwardRef<ImageUploadWithRecognitionR
               </button>
             )}
             
-            {/* Кнопки когда есть файл */}
-            {selectedFile && !isProcessing && (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleRetakePhoto}
-                  disabled={isProcessing}
-                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 disabled:bg-gray-50 transition-colors"
-                >
-                  Выбрать другое фото
-                </button>
-                <button
-                  onClick={handleRemovePhoto}
-                  disabled={isProcessing}
-                  className="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-sm hover:bg-red-200 disabled:bg-gray-50 transition-colors flex items-center gap-1"
-                >
-                  <X className="w-4 h-4" />
-                  Удалить фото
-                </button>
-              </div>
-            )}
           </div>
         </div>
         
