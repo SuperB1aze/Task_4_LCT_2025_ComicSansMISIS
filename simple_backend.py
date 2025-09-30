@@ -16,7 +16,6 @@ import uvicorn
 
 # Добавляем путь к модулям
 sys.path.append(str(Path(__file__).parent / "backend-repo" / "backend" / "src"))
-sys.path.append(str(Path(__file__).parent))  # Добавляем текущую директорию
 
 try:
     from ML.yolo import CLASS_NAMES, run_inference
@@ -24,6 +23,10 @@ except ImportError as e:
     print(f"Ошибка импорта YOLO: {e}")
     print(f"Текущая директория: {Path(__file__).parent}")
     print(f"Содержимое директории: {list(Path(__file__).parent.iterdir())}")
+    # Попробуем альтернативный путь
+    alt_path = Path(__file__).parent / "backend-repo" / "backend" / "src"
+    print(f"Альтернативный путь: {alt_path}")
+    print(f"Содержимое альтернативного пути: {list(alt_path.iterdir()) if alt_path.exists() else 'Не существует'}")
     sys.exit(1)
 
 app = FastAPI(title="Tool Recognition API", version="1.0.0")
@@ -147,22 +150,7 @@ if __name__ == "__main__":
     
     print("🚀 Запуск упрощенного backend'а...")
     
-    # Проверяем наличие модели в разных местах
-    model_paths = [
-        "backend-repo/backend/src/ML/best.pt",
-        "ML/best.pt"
-    ]
-    
-    model_path = None
-    for path in model_paths:
-        if Path(path).exists():
-            model_path = path
-            break
-    
-    if model_path:
-        print("📁 Модель:", model_path)
-    else:
-        print("⚠️ Модель не найдена!")
+    print("📁 Модель:", "backend-repo/backend/src/ML/best.pt")
     
     print(f"🌐 API будет доступен на порту: {port}")
     print(f"📖 Документация: http://localhost:{port}/docs")
