@@ -34,8 +34,8 @@ class MLService {
         return envUrl
       }
       
-      // Временный fallback для тестирования
-      console.warn('⚠️ Backend URL не настроен для production. Используется deployed backend.')
+      // Production backend URL
+      console.log('🌐 Используется production backend')
       return 'https://task-4-lct-2025-comicsansmisis.onrender.com'
     }
     
