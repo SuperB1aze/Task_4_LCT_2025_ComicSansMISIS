@@ -42,33 +42,22 @@ def _download_model():
     if os.path.exists(MODEL_PATH):
         return True
     
-    print(f"📥 Скачиваем модель...")
+    print(f"⚠️ Модель не найдена: {MODEL_PATH}")
+    print(f"🔄 Используем стандартную модель YOLO...")
+    
     try:
         # Создаем директорию если не существует
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         
-        # Попробуем скачать с разных источников
-        model_urls = [
-            "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt",  # Стандартная модель YOLO
-            "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8s.pt",  # Альтернативная модель
-        ]
-        
-        for model_url in model_urls:
-            try:
-                print(f"Пробуем скачать с: {model_url}")
-                import urllib.request
-                urllib.request.urlretrieve(model_url, MODEL_PATH)
-                print(f"✅ Модель скачана: {MODEL_PATH}")
-                return True
-            except Exception as e:
-                print(f"❌ Ошибка скачивания с {model_url}: {e}")
-                continue
-        
-        print(f"❌ Не удалось скачать модель ни с одного источника")
-        return False
+        # Используем встроенную модель YOLO (загружается автоматически)
+        from ultralytics import YOLO
+        model = YOLO('yolov8n.pt')  # Автоматически скачивается
+        model.save(MODEL_PATH)  # Сохраняем локально
+        print(f"✅ Модель скачана: {MODEL_PATH}")
+        return True
         
     except Exception as e:
-        print(f"❌ Общая ошибка скачивания модели: {e}")
+        print(f"❌ Ошибка загрузки модели: {e}")
         return False
 
 def _get_model():
@@ -100,6 +89,19 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
         vis_output = os.path.join(MEDIA_DIR, "vis_result.jpg")
 
     current_model = _get_model()
+    
+    if current_model is None:
+        print("⚠️ Модель недоступна, возвращаем пустые результаты")
+        # Создаем пустой JSON файл
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump([], f, ensure_ascii=False, indent=2)
+        
+        # Создаем копию исходного изображения как визуализацию
+        if vis_output and os.path.exists(image_path):
+            import shutil
+            shutil.copy2(image_path, vis_output)
+        
+        return output_file, vis_output
 
     # инференс
     results = current_model.predict(image_path, imgsz=640, conf=0.01, verbose=False)
