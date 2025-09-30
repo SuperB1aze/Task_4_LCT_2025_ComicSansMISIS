@@ -5,13 +5,9 @@ import numpy as np
 from ultralytics import YOLO
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "best.pt")
-MEDIA_DIR = os.path.join(os.path.dirname(BASE_DIR), "media")
-
-# Если media директория не существует, создаем в корне
-if not os.path.exists(os.path.dirname(MEDIA_DIR)):
-    MEDIA_DIR = os.path.join(os.path.dirname(BASE_DIR), "backend-repo", "backend", "media")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "ML", "best.pt")
+MEDIA_DIR = os.path.join(BASE_DIR, "media")
 
 
 os.makedirs(MEDIA_DIR, exist_ok=True)
@@ -37,38 +33,29 @@ CLASS_NAMES = [
 class_thresholds = {cls: 0.5 for cls in CLASS_NAMES}  # дефолт = 0.5
 
 
-def _download_model():
-    """Скачивает модель если она отсутствует"""
-    if os.path.exists(MODEL_PATH):
-        return True
-    
-    print(f"⚠️ Модель не найдена: {MODEL_PATH}")
-    print(f"🔄 Используем стандартную модель YOLO...")
-    
-    try:
-        # Создаем директорию если не существует
-        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-        
-        # Используем встроенную модель YOLO (загружается автоматически)
-        from ultralytics import YOLO
-        model = YOLO('yolov8n.pt')  # Автоматически скачивается
-        model.save(MODEL_PATH)  # Сохраняем локально
-        print(f"✅ Модель скачана: {MODEL_PATH}")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Ошибка загрузки модели: {e}")
-        return False
-
 def _get_model():
     """Ленивая загрузка модели"""
     global model
     if model is None:
         try:
-            # Используем встроенную модель YOLO (автоматически скачивается)
-            print(f"🔄 Загружаем стандартную модель YOLO...")
-            model = YOLO('yolov8n.pt')  # Автоматически скачивается при первом использовании
-            print(f"✅ Модель YOLO загружена успешно")
+            # Сначала пытаемся загрузить кастомную модель
+            if os.path.exists(MODEL_PATH):
+                model = YOLO(MODEL_PATH)
+                print(f"✅ Загружена кастомная модель: {MODEL_PATH}")
+            else:
+                # Если кастомная модель не найдена, используем стандартную YOLO
+                print(f"⚠️ Кастомная модель не найдена: {MODEL_PATH}")
+                print(f"🔄 Используем стандартную модель YOLO...")
+                model = YOLO('yolov8n.pt')  # Автоматически скачивается
+                print(f"✅ Загружена стандартная модель YOLO")
+                
+                # Попытка сохранить стандартную модель как кастомную для будущего использования
+                try:
+                    model.save(MODEL_PATH)
+                    print(f"💾 Стандартная модель сохранена как: {MODEL_PATH}")
+                except Exception as save_error:
+                    print(f"⚠️ Не удалось сохранить модель: {save_error}")
+                    
         except Exception as e:
             print(f"❌ Ошибка загрузки модели: {e}")
             return None
@@ -116,6 +103,7 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
             if cls_id < len(CLASS_NAMES):
                 cls_name = CLASS_NAMES[cls_id]
             else:
+                # Если используется стандартная модель YOLO, используем её классы
                 cls_name = f"class_{cls_id}"
             
             score = float(scores[i])
@@ -126,7 +114,6 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
 
             valid_detections.append({
                 'class_id': int(cls_id),
-                'class_name': cls_name,
                 'score': score,
                 'box': boxes[i]
             })
