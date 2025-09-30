@@ -29,7 +29,20 @@ except ImportError as e:
     alt_path = Path(__file__).parent / "backend-repo" / "backend" / "src"
     print(f"Альтернативный путь: {alt_path}")
     print(f"Содержимое альтернативного пути: {list(alt_path.iterdir()) if alt_path.exists() else 'Не существует'}")
-    sys.exit(1)
+    
+    # Попробуем скачать модель автоматически
+    try:
+        from download_model import download_model
+        print("🔄 Пытаемся скачать модель...")
+        if download_model():
+            print("✅ Модель скачана, перезапускаем импорт...")
+            from ML.yolo import CLASS_NAMES, run_inference
+            print("✅ ML модуль успешно импортирован после скачивания модели")
+        else:
+            sys.exit(1)
+    except Exception as download_error:
+        print(f"❌ Не удалось скачать модель: {download_error}")
+        sys.exit(1)
 
 app = FastAPI(title="Tool Recognition API", version="1.0.0")
 
