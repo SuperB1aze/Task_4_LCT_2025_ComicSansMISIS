@@ -16,11 +16,14 @@ import uvicorn
 
 # Добавляем путь к модулям
 sys.path.append(str(Path(__file__).parent / "backend-repo" / "backend" / "src"))
+sys.path.append(str(Path(__file__).parent))  # Добавляем текущую директорию
 
 try:
     from ML.yolo import CLASS_NAMES, run_inference
 except ImportError as e:
     print(f"Ошибка импорта YOLO: {e}")
+    print(f"Текущая директория: {Path(__file__).parent}")
+    print(f"Содержимое директории: {list(Path(__file__).parent.iterdir())}")
     sys.exit(1)
 
 app = FastAPI(title="Tool Recognition API", version="1.0.0")
@@ -28,7 +31,15 @@ app = FastAPI(title="Tool Recognition API", version="1.0.0")
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:5173", "http://localhost:3000", "http://localhost:3002", "http://localhost:3003"],
+    allow_origins=[
+        "http://localhost:3001", 
+        "http://localhost:5173", 
+        "http://localhost:3000", 
+        "http://localhost:3002", 
+        "http://localhost:3003",
+        "https://task-4-lct-2025-comic-sans-misis.vercel.app",
+        "*"  # Временно разрешаем все origins для тестирования
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,9 +140,31 @@ async def get_media(filename: str):
         raise HTTPException(status_code=404, detail="Файл не найден")
 
 if __name__ == "__main__":
-    print("🚀 Запуск упрощенного backend'а...")
-    print("📁 Модель:", "backend-repo/backend/src/ML/best.pt")
-    print("🌐 API будет доступен на: http://localhost:8000")
-    print("📖 Документация: http://localhost:8000/docs")
+    import os
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Получаем порт из переменной окружения (для Heroku/Railway)
+    port = int(os.environ.get("PORT", 8000))
+    
+    print("🚀 Запуск упрощенного backend'а...")
+    
+    # Проверяем наличие модели в разных местах
+    model_paths = [
+        "backend-repo/backend/src/ML/best.pt",
+        "ML/best.pt"
+    ]
+    
+    model_path = None
+    for path in model_paths:
+        if Path(path).exists():
+            model_path = path
+            break
+    
+    if model_path:
+        print("📁 Модель:", model_path)
+    else:
+        print("⚠️ Модель не найдена!")
+    
+    print(f"🌐 API будет доступен на порту: {port}")
+    print(f"📖 Документация: http://localhost:{port}/docs")
+    
+    uvicorn.run(app, host="0.0.0.0", port=port)

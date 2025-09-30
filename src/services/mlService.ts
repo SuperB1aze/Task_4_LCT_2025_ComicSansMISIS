@@ -10,10 +10,40 @@ class MLService {
     inputSize: { width: 640, height: 640 }
   }
 
-  private apiBaseUrl = 'http://localhost:8000' // URL упрощенного backend'а
+  private apiBaseUrl = this.getApiBaseUrl() // URL упрощенного backend'а
 
   private isModelLoaded = false
   private loadingPromise: Promise<void> | null = null
+
+  /**
+   * Определение базового URL для API в зависимости от окружения
+   */
+  private getApiBaseUrl(): string {
+    // Проверяем, находимся ли мы в браузере
+    if (typeof window === 'undefined') {
+      return 'http://localhost:8000' // fallback для SSR
+    }
+
+    // В production (не localhost) - нужно будет заменить на ваш deployed backend URL
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      // TODO: Замените на URL вашего deployed backend
+      // Например: 'https://your-backend-url.herokuapp.com'
+      // Или используйте переменную окружения VITE_API_BASE_URL
+      const envUrl = (import.meta as any).env?.VITE_API_BASE_URL
+      if (envUrl) {
+        return envUrl
+      }
+      
+      // Fallback - для production нужно указать URL вашего deployed backend
+      console.warn('⚠️ Backend URL не настроен для production. Используется localhost.')
+      console.warn('⚠️ Для production разверните backend на Railway, Render или Heroku.')
+      console.warn('⚠️ Затем установите переменную окружения VITE_API_BASE_URL в Vercel.')
+      return 'http://localhost:8000'
+    }
+    
+    // Для development используем localhost
+    return 'http://localhost:8000'
+  }
 
   /**
    * Инициализация модели машинного обучения
