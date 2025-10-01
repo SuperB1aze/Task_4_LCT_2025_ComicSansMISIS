@@ -15,7 +15,8 @@ class PredictResponse(BaseModel):
     found_tools: List[ToolInfo]
     hand_check: bool
     processed_image_url: str  
-    ml_predictions: List[int] 
+    ml_predictions: List[int]
+    inference_time_ms: float 
 
 
 class PredictRequest(BaseModel):
@@ -32,6 +33,7 @@ class BatchImageResult(BaseModel):
     hand_check: bool
     processed_image_url: str | None = None
     ml_predictions: List[int] | None = None
+    inference_time_ms: float | None = None
     error_message: str | None = None
 
 
