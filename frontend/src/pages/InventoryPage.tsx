@@ -3,8 +3,10 @@ import { Check, Plus, X } from 'lucide-react'
 import { ImageUploadWithRecognition, ImageUploadWithRecognitionRef } from '../components/ImageUploadWithRecognition'
 import { AddToolModal } from '../components/AddToolModal'
 import { IssuanceResultsDialog } from '../components/IssuanceResultsDialog'
+import { ConfidenceBlock } from '../components/ConfidenceBlock'
 import { DetectedTool } from '../types'
 import { useToolRecognition } from '../hooks/useToolRecognition'
+import { useConfidence } from '../hooks/useConfidence'
 import { useIssuanceStore } from '../store/issuanceStore'
 import { issuanceService, IssuanceResult } from '../services/issuanceService'
 
@@ -78,6 +80,8 @@ export const InventoryPage = () => {
   const {
     recognizeTools
   } = useToolRecognition()
+
+  const { confidence, updateConfidence } = useConfidence()
 
   const { showResultsDialog, setShowResultsDialog } = useIssuanceStore()
 
@@ -545,6 +549,12 @@ export const InventoryPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Confidence Block */}
+            <ConfidenceBlock 
+              confidence={confidence}
+              onConfidenceChange={updateConfidence}
+            />
           </div>
         </div>
 
