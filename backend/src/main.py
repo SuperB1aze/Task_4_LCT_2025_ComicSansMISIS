@@ -10,6 +10,9 @@ from src.utils.database import db_manager
 from src.utils.mock import create_mock_data
 from src.api.predict import router as predict_router
 from src.api.media import router as media_router
+from src.api.user import router as user_router
+from src.api.tool import router as tool_router
+from src.api.toolkit import router as toolkit_router
 sys.path.append(str(Path(__file__).parent.parent))
 
 
@@ -52,6 +55,9 @@ app = FastAPI(
 app.include_router(base_router)
 app.include_router(predict_router)
 app.include_router(media_router)
+app.include_router(user_router)
+app.include_router(tool_router)
+app.include_router(toolkit_router)
 
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
