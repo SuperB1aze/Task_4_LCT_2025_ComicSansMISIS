@@ -31,8 +31,6 @@ class ToolKitItemService:
             raise HTTPException(404, "Позиция набора не найдена")
 
         data = payload.model_dump(exclude_unset=True, exclude_none=True)
-        if not data:
-            return ToolKitItemRead.model_validate(item, from_attributes=True)
 
         if "quantity" in data:
             item.quantity = data["quantity"]
