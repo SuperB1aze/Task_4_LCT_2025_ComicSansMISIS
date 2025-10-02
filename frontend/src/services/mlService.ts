@@ -113,15 +113,19 @@ class MLService {
   /**
    * Распознавание инструментов на изображении
    */
-  async recognizeTools(imageFile: File, toolkitId: number = 1, confidence: number = 0.1): Promise<RecognitionResult> {
+  async recognizeTools(imageFile: File, toolkitId: number = 1, confidence?: number): Promise<RecognitionResult> {
     const startTime = performance.now()
     
     try {
+      // Получаем значение confidence из localStorage или используем переданное значение
+      const finalConfidence = confidence !== undefined ? confidence : this.getConfidenceFromStorage()
+      console.log(`🤖 Используем значение уверенности для predict API: ${finalConfidence} (${finalConfidence * 100}%)`)
+      
       // Отправляем изображение на backend для распознавания
       const formData = new FormData()
       formData.append('image', imageFile)
       formData.append('toolkit_id', toolkitId.toString())
-      formData.append('confidence', confidence.toString())
+      formData.append('confidence', finalConfidence.toString())
       
       const response = await fetch(`${this.apiBaseUrl}/predict/`, {
         method: 'POST',
@@ -284,6 +288,25 @@ class MLService {
    */
   isReady(): boolean {
     return this.isModelLoaded
+  }
+
+  /**
+   * Получение значения confidence из localStorage
+   */
+  private getConfidenceFromStorage(): number {
+    try {
+      const storedConfidence = localStorage.getItem('model_confidence')
+      if (storedConfidence) {
+        const confidence = parseFloat(storedConfidence)
+        console.log(`📊 Получено значение уверенности из localStorage: ${confidence} (${confidence * 100}%)`)
+        return confidence
+      }
+    } catch (error) {
+      console.error('Ошибка при получении confidence из localStorage:', error)
+    }
+    
+    console.log('📊 Значение уверенности не найдено, используем значение по умолчанию: 0.5')
+    return 0.5 // Значение по умолчанию
   }
 }
 
