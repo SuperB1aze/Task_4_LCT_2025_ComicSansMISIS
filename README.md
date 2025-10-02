@@ -32,8 +32,6 @@ docker-compose up -d --build
 
 - Фронтенд: http://localhost:3000
 - Бекенд API: http://localhost:8000
-- PostgreSQL: localhost:54321
-- Redis: localhost:6380
 
 ## Остановка
 
