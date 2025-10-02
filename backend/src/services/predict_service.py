@@ -2,7 +2,7 @@ import os
 import uuid
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.ML.yolo import CLASS_NAMES, run_inference
+from src.ML.yolo import run_inference
 from src.repo.predict_repos import ToolRepo, ToolKitRepo, ToolKitItemRepo
 from src.schemas.predict import PredictResponse, ToolInfo, BatchImageResult, BatchPredictResponse
 from typing import List
@@ -28,12 +28,10 @@ class PredictService:
             media_dir = os.path.join(base_dir, "media")
             final_image_path = os.path.join(media_dir, final_image_filename)
 
-            custom_tresholds = {cls: confidence for cls in CLASS_NAMES}
-
             predictions_json_path, _, inference_time = run_inference(
                 temp_image_path, 
                 vis_output=final_image_path,
-                thresholds=custom_tresholds
+                model_conf=confidence
             )
             
 

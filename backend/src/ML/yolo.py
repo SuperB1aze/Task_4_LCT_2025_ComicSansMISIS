@@ -14,7 +14,7 @@ if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = True  # быстрее при фиксированном размере
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "ML", "best-5.pt")
+MODEL_PATH = os.path.join(BASE_DIR, "ML", "best_weights.pt")
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
 
 
@@ -22,28 +22,13 @@ os.makedirs(MEDIA_DIR, exist_ok=True)
 
 model = None
 
-# 2. Классы модели (в том порядке, в каком они в data.yaml)
-CLASS_NAMES = [
-    "Отвертка «-»",                     # '1'
-    "Ключ рожковый/накидной 3⁄4",       # '10'
-    "Бокорезы",                         # '11'
-    "Отвертка «+»",                     # '2'
-    "Отвертка на смещенный крест",      # '3'
-    "Коловорот",                        # '4'
-    "Пассатижи контровочные",           # '5'
-    "Пассатижи",                        # '6'
-    "Шэрница",                          # '7'
-    "Разводной ключ",                   # '8'
-    "Открывашка для банок с маслом"     # '9'
-]
 
-# 3) Пороги по классам
-class_thresholds = {cls: 0.766 for cls in CLASS_NAMES}
+CLASS_NAMES = None
 
 
 def _get_model():
     """Ленивая загрузка модели"""
-    global model
+    global model, CLASS_NAMES
     if model is None:
         model = YOLO(MODEL_PATH)
         model.to(DEVICE)
@@ -51,23 +36,20 @@ def _get_model():
             model.fuse()
         except Exception:
             pass
+        CLASS_NAMES = model.names
     return model
 
 
 def run_inference(
     image_input,
-    thresholds=None,
     output_file=None,
     vis_output=None,
-    model_conf=0.766,
-    iou=0.7,
-    imgsz=832,
-    max_det=200,
+    model_conf=0.67,
+    iou=0.6,
+    imgsz=640,
+    max_det=150,
     device=DEVICE
 ):
-    if thresholds is None:
-        thresholds = class_thresholds
-    
     if output_file is None:
         output_file = os.path.join(MEDIA_DIR, "predictions.json")
     if vis_output is None:
@@ -102,29 +84,16 @@ def run_inference(
         if boxes is None or len(boxes) == 0:
             continue
 
-        xyxy = boxes.xyxy
-        scores = boxes.conf
-        classes = boxes.cls
+        classes = boxes.cls.cpu().numpy().astype(int)
 
-        if hasattr(xyxy, "cpu"):
-            xyxy = xyxy.cpu().numpy()
-            scores = scores.cpu().numpy()
-            classes = classes.cpu().numpy().astype(int)
-
-        for i, cls_id in enumerate(classes):
-            if cls_id < 0 or cls_id >= len(CLASS_NAMES):
-                continue
-            cls_name = CLASS_NAMES[cls_id]
-            score = float(scores[i])
-            if score < thresholds.get(cls_name, 0.3):
-                continue
-            predictions.append(int(cls_id))
+        for cls_id in classes:
+            if 0 <= cls_id < len(CLASS_NAMES):
+                predictions.append(int(CLASS_NAMES[cls_id]))
 
         if vis_output:
             res_plotted = r.plot()
             cv2.imwrite(vis_output, res_plotted)
 
-    # сохраняем в JSON
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(predictions, f, indent=2, ensure_ascii=False)
 
