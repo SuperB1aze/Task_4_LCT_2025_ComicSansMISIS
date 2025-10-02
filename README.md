@@ -13,8 +13,6 @@
 
 - **frontend** - React приложение на nginx (порт 3000)
 - **backend** - FastAPI приложение (порт 8000)
-- **db** - PostgreSQL база данных (порт 54321)
-- **redis** - Redis кэш (порт 6380)
 
 ## Запуск
 
