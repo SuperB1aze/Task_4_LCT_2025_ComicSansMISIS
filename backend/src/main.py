@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from contextlib import asynccontextmanager
 
@@ -50,6 +51,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LCT.Comic-Sans",
     lifespan=lifespan
+)
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://frontend:80"],  # Разрешаем фронтенд
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешаем все HTTP методы
+    allow_headers=["*"],  # Разрешаем все заголовки
 )
 
 app.include_router(base_router)
