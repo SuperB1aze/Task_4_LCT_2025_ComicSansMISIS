@@ -27,9 +27,9 @@ export const ConfidenceBlock: React.FC<ConfidenceBlockProps> = ({
   const handleSave = async () => {
     const value = parseFloat(inputValue)
     
-    // Валидация: число от 0 (не включая) до 1
-    if (isNaN(value) || value <= 0 || value > 1) {
-      alert('Введите число от 0 до 1 (не включая 0)')
+    // Валидация: число от 0 (не включая) до 1 (не включая)
+    if (isNaN(value) || value <= 0 || value >= 1) {
+      alert('Введите число от 0 до 1 (не включая границы 0 и 1)')
       return
     }
 
@@ -115,7 +115,7 @@ export const ConfidenceBlock: React.FC<ConfidenceBlockProps> = ({
                   autoFocus
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  Введите число от 0 до 1 (например: 0.5)
+                  Введите число от 0 до 1 (не включая границы, например: 0.5)
                 </div>
               </div>
               

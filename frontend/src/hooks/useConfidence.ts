@@ -31,8 +31,8 @@ export const useConfidence = () => {
       setError(null)
       
       // Валидация на фронтенде
-      if (newConfidence <= 0 || newConfidence > 1) {
-        throw new Error('Значение уверенности должно быть от 0 до 1 (не включая 0)')
+      if (newConfidence <= 0 || newConfidence >= 1) {
+        throw new Error('Значение уверенности должно быть от 0 до 1 (не включая границы 0 и 1)')
       }
 
       const response = await confidenceService.setConfidence(newConfidence)
