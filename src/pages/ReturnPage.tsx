@@ -2,143 +2,78 @@ import React, { useState, useRef } from 'react'
 import { Check, Plus, X } from 'lucide-react'
 import { ImageUploadWithRecognition, ImageUploadWithRecognitionRef } from '../components/ImageUploadWithRecognition'
 import { AddToolModal } from '../components/AddToolModal'
-import { IssuanceResultsDialog } from '../components/IssuanceResultsDialog'
 import { DetectedTool } from '../types'
 import { useToolRecognition } from '../hooks/useToolRecognition'
-import { useIssuanceStore } from '../store/issuanceStore'
-import { issuanceService, IssuanceResult } from '../services/issuanceService'
 
-// Компонент круговой диаграммы
-const CircularProgress = ({ percentage }: { percentage: number }) => {
-  const radius = 50
-  const strokeWidth = 10
-  const normalizedRadius = radius - strokeWidth / 2
-  const circumference = normalizedRadius * 2 * Math.PI
-  const strokeDasharray = `${circumference} ${circumference}`
-  const strokeDashoffset = circumference - (percentage / 100) * circumference
 
-  return (
-    <div className="relative w-24 h-24">
-      <svg
-        height={radius * 2}
-        width={radius * 2}
-        className="transform -rotate-90"
-      >
-        {/* Прогресс круг с градиентом */}
-        <defs>
-          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#0066FF" />
-            <stop offset="100%" stopColor="#0046E2" />
-          </linearGradient>
-        </defs>
-        <circle
-          stroke="url(#progressGradient)"
-          fill="transparent"
-          strokeWidth={strokeWidth}
-          strokeDasharray={strokeDasharray}
-          style={{ strokeDashoffset }}
-          strokeLinecap="round"
-          r={normalizedRadius}
-          cx={radius}
-          cy={radius}
-          className="drop-shadow-lg"
-        />
-      </svg>
-      {/* Процент в центре */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span 
-          className="text-lg font-bold text-[#262626] leading-none ml-2.5 mt-1"
-          style={{ 
-            lineHeight: '1',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          {percentage}%
-        </span>
-      </div>
-    </div>
-  )
-}
-
-export const InventoryPage = () => {
-  const [searchCode, setSearchCode] = useState('')
+export const ReturnPage = () => {
   const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([])
-  const [matchPercentage, setMatchPercentage] = useState(0) // Начальное значение 0%
   const [isScanning, setIsScanning] = useState(false)
   const [scanComplete, setScanComplete] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, fileName: string}>>([])
   const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false)
-  const [issuanceResult, setIssuanceResult] = useState<IssuanceResult | null>(null)
-  const [showIssuanceDialog, setShowIssuanceDialog] = useState(false)
-  const [imageMLResults, setImageMLResults] = useState<Array<{fileName: string, result: IssuanceResult}>>([])
   const imageUploadRef = useRef<ImageUploadWithRecognitionRef>(null)
 
   const {
     recognizeTools
   } = useToolRecognition()
 
-  const { showResultsDialog, setShowResultsDialog } = useIssuanceStore()
-
   // Принудительная очистка при загрузке страницы
   React.useEffect(() => {
-    console.log('🔄 Страница выдачи загружена, очищаем все данные...')
+    console.log('🔄 Страница сдачи загружена, очищаем все данные...')
     setDetectedTools([])
-    setMatchPercentage(0)
     setScanComplete(false)
     setIsScanning(false)
     setUploadedImages([])
-    setIssuanceResult(null) // Очищаем результат ML обработки
-    setShowIssuanceDialog(false) // Скрываем диалог результатов
-    setShowResultsDialog(false) // Сбрасываем флаг показа диалога
-    setImageMLResults([]) // Очищаем результаты ML для каждого изображения
   }, [])
 
-  // Обновляем процент совпадения на основе найденных инструментов
-  const updateMatchPercentage = (tools: DetectedTool[]) => {
-    if (tools.length === 0) {
-      setMatchPercentage(0)
-    } else {
-      // Простая логика: чем больше инструментов найдено, тем выше процент
-      const basePercentage = Math.min(70 + (tools.length * 5), 98)
-      setMatchPercentage(basePercentage)
-    }
-  }
 
   // Обработка завершения сканирования
-  // Обработка завершения сканирования (только показывает диалог)
   const handleScanComplete = async () => {
     if (uploadedImages.length === 0) {
       console.log('❌ Нет загруженных изображений')
       return
     }
     
-    console.log('🚀 Завершаем сканирование и показываем результаты...')
+    console.log('🚀 Запускаем распознавание для всех изображений...')
+    console.log('📸 Количество изображений для обработки:', uploadedImages.length)
+    console.log('🧹 Очищаем предыдущие результаты...')
+    setDetectedTools([]) // Очищаем список инструментов
+    setScanComplete(false) // Сбрасываем статус завершения
+    setIsScanning(true) // Устанавливаем статус сканирования
     
     try {
-      // Создаем IssuanceResult из уже собранных данных ML
-      const allFoundTools = imageMLResults.flatMap(img => img.result.found_tools)
-      const lastProcessedImageUrl = imageMLResults.length > 0 ? imageMLResults[imageMLResults.length - 1].result.processed_image_url : undefined
+      const allDetectedTools: DetectedTool[] = []
       
-      const issuanceResult: IssuanceResult = {
-        found_tools: allFoundTools,
-        hand_check: allFoundTools.length !== 11,
-        processed_image_url: lastProcessedImageUrl,
-        ml_predictions: allFoundTools.map(() => Math.random())
+      // Обрабатываем каждое изображение
+      for (let i = 0; i < uploadedImages.length; i++) {
+        const imageData = uploadedImages[i]
+        console.log(`🔍 Обрабатываем изображение ${i + 1}/${uploadedImages.length}: ${imageData.fileName}`)
+        
+        // Создаем File объект из URL
+        const response = await fetch(imageData.url)
+        const blob = await response.blob()
+        const file = new File([blob], imageData.fileName, { type: blob.type })
+        
+        // Распознаем инструменты на изображении
+        const tools = await recognizeTools(file)
+        console.log(`✅ Найдено инструментов на изображении ${i + 1}:`, tools.length)
+        
+        // Добавляем инструменты к общему списку
+        allDetectedTools.push(...tools)
       }
       
-      console.log('🔍 DEBUG: Созданный IssuanceResult:', issuanceResult);
-      console.log('🔍 DEBUG: Найденные инструменты с ID:', issuanceResult.found_tools.map(t => ({ id: t.id, name: t.name })));
+      console.log('🎯 Общее количество найденных инструментов:', allDetectedTools.length)
+      console.log('📋 Список всех инструментов:', allDetectedTools)
       
-      setIssuanceResult(issuanceResult)
-      
-      // Показываем диалог результатов
-      setShowIssuanceDialog(true)
-      setShowResultsDialog(true)
+      setDetectedTools(allDetectedTools)
+      setScanComplete(true)
+      setIsScanning(false)
       
     } catch (error) {
-      console.error('❌ Ошибка при завершении сканирования:', error)
+      console.error('❌ Ошибка при запуске распознавания:', error)
+      setIsScanning(false)
+      setScanComplete(false)
     }
   }
 
@@ -146,7 +81,7 @@ export const InventoryPage = () => {
   const handleStartScan = () => {
     setIsScanning(true)
     setScanComplete(false)
-    console.log('Начато сканирование...')
+    console.log('Начато сканирование для сдачи...')
   }
 
   // Обработка добавления инструмента вручную
@@ -171,7 +106,6 @@ export const InventoryPage = () => {
     
     // Добавляем к существующим инструментам
     setDetectedTools(prev => [...prev, newTool])
-    updateMatchPercentage([...detectedTools, newTool]) // Обновляем процент совпадения
     setScanComplete(true) // Помечаем как завершенное сканирование
   }
 
@@ -179,79 +113,21 @@ export const InventoryPage = () => {
   const handleFileRemoved = () => {
     console.log('🗑️ Фото удалено, сбрасываем состояние...')
     setDetectedTools([]) // Обнуляем список инструментов
-    setMatchPercentage(0) // Сбрасываем процент совпадения
     setScanComplete(false) // Сбрасываем статус завершения сканирования
     setIsScanning(false) // Сбрасываем статус сканирования
     setUploadedImages([]) // Очищаем список загруженных изображений
-    setIssuanceResult(null) // Очищаем результат ML обработки
-    setShowIssuanceDialog(false) // Скрываем диалог результатов
-    setShowResultsDialog(false) // Сбрасываем флаг показа диалога
-    setImageMLResults([]) // Очищаем результаты ML для каждого изображения
   }
 
   // Обработка добавления изображения
-  const handleImageAdded = async (imageUrl: string, fileName: string) => {
+  const handleImageAdded = (imageUrl: string, fileName: string) => {
     console.log('📸 Добавлено изображение:', fileName)
     setUploadedImages(prev => [...prev, { url: imageUrl, fileName }])
-    
-    // Скрываем диалог при добавлении нового изображения
-    setShowIssuanceDialog(false)
-    setShowResultsDialog(false)
-    
-    // Сразу запускаем ML анализ для нового изображения
-    try {
-      console.log(`🔍 Запускаем мгновенный ML анализ для: ${fileName}`)
-      
-      // Создаем File объект из URL
-      const response = await fetch(imageUrl)
-      const blob = await response.blob()
-      const file = new File([blob], fileName, { type: blob.type })
-      
-      // Используем ML сервис для распознавания
-      const mlResult = await issuanceService.recognizeTools(file, 1, 0.5)
-      console.log(`✅ Мгновенный ML результат для ${fileName}:`, mlResult)
-      
-      // Обновляем результаты ML для изображений
-      setImageMLResults(prev => [...prev, {
-        fileName: fileName,
-        result: mlResult
-      }])
-      
-      // Преобразуем найденные инструменты в формат DetectedTool
-      const newDetectedTools = mlResult.found_tools.map(tool => ({
-        id: `instant_${tool.id}_${Date.now()}`,
-        name: tool.name,
-        confidence: 0.95,
-        quantity: 1,
-        category: tool.category,
-        condition: 'good' as const,
-        serialNumber: tool.serial_number
-      }))
-      
-      // Обновляем список инструментов и процент совпадения
-      setDetectedTools(prev => {
-        const updatedTools = [...prev, ...newDetectedTools]
-        updateMatchPercentage(updatedTools)
-        return updatedTools
-      })
-      
-      // Помечаем как завершенное сканирование
-      setScanComplete(true)
-      
-      console.log(`🎯 Добавлено ${newDetectedTools.length} инструментов из ${fileName}`)
-      
-    } catch (error) {
-      console.error(`❌ Ошибка при мгновенном ML анализе для ${fileName}:`, error)
-    }
   }
 
   // Обработка удаления изображения
   const handleImageRemove = (index: number) => {
     console.log('🗑️ Удаляем изображение:', index)
     console.log('📊 Текущий список изображений:', uploadedImages)
-    
-    const imageToRemove = uploadedImages[index]
-    
     setUploadedImages(prev => {
       const newList = prev.filter((_, i) => i !== index)
       console.log('📊 Новый список изображений:', newList)
@@ -259,50 +135,8 @@ export const InventoryPage = () => {
       // Если удалили все изображения, сбрасываем состояние сканирования
       if (newList.length === 0) {
         setDetectedTools([])
-        setMatchPercentage(0)
         setScanComplete(false)
         setIsScanning(false)
-        setIssuanceResult(null) // Очищаем результат ML обработки
-        setShowIssuanceDialog(false) // Скрываем диалог результатов
-        setShowResultsDialog(false) // Сбрасываем флаг показа диалога
-        setImageMLResults([]) // Очищаем результаты ML для каждого изображения
-      } else {
-        // Если удалили одно изображение, обновляем результаты ML
-        setImageMLResults(prev => {
-          const newImageResults = prev.filter(img => img.fileName !== imageToRemove.fileName)
-          
-          // Пересчитываем общий список инструментов
-          const remainingFoundTools = newImageResults.flatMap(img => img.result.found_tools)
-          const remainingDetectedTools = remainingFoundTools.map((tool, toolIndex) => ({
-            id: `remaining_${tool.id}_${toolIndex}`,
-            name: tool.name,
-            confidence: 0.95,
-            quantity: 1,
-            category: tool.category,
-            condition: 'good' as const,
-            serialNumber: tool.serial_number
-          }))
-          
-          // Обновляем состояние
-          setDetectedTools(remainingDetectedTools)
-          updateMatchPercentage(remainingDetectedTools)
-          
-          // Обновляем IssuanceResult
-          if (remainingFoundTools.length > 0) {
-            const updatedIssuanceResult: IssuanceResult = {
-              found_tools: remainingFoundTools,
-              hand_check: remainingFoundTools.length !== 11,
-              processed_image_url: newImageResults.length > 0 ? newImageResults[newImageResults.length - 1].result.processed_image_url : undefined,
-              ml_predictions: remainingFoundTools.map(() => Math.random())
-            }
-            setIssuanceResult(updatedIssuanceResult)
-          } else {
-            setIssuanceResult(null)
-            setScanComplete(false)
-          }
-          
-          return newImageResults
-        })
       }
       
       return newList
@@ -318,30 +152,13 @@ export const InventoryPage = () => {
       
       // Если удалили все инструменты, сбрасываем состояние сканирования
       if (newList.length === 0) {
-        setMatchPercentage(0)
         setScanComplete(false)
-      } else {
-        // Обновляем процент совпадения
-        updateMatchPercentage(newList)
       }
       
       return newList
     })
   }
 
-  // Обработка закрытия диалога результатов
-  const handleIssuanceDialogClose = () => {
-    setShowIssuanceDialog(false)
-    setShowResultsDialog(false)
-  }
-
-  // Обработка подтверждения выдачи
-  const handleIssuanceConfirm = () => {
-    console.log('✅ Подтверждена выдача инструментов')
-    setShowIssuanceDialog(false)
-    setShowResultsDialog(false)
-    // Здесь можно добавить логику сохранения результатов в базу данных
-  }
 
   return (
     <div className="p-8">
@@ -349,9 +166,11 @@ export const InventoryPage = () => {
         {/* Main Title */}
         <div className="mb-12">
           <h1 className="text-[52px] font-semibold text-[#262626] leading-tight" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            Выдача<br />инструментов
+            Сдача<br />инструментов
           </h1>
         </div>
+
+
 
         {/* Cards */}
         <div className="flex justify-center mb-8 mt-28">
@@ -384,15 +203,10 @@ export const InventoryPage = () => {
                   <ImageUploadWithRecognition
                     ref={imageUploadRef}
                     onToolsDetected={(tools, confidence) => {
-                      console.log('📥 Получены инструменты в InventoryPage:', tools, 'Уверенность:', confidence)
+                      console.log('📥 Получены инструменты в ReturnPage:', tools, 'Уверенность:', confidence)
                       console.log('📊 Количество инструментов:', tools.length)
                       console.log('🔍 Детали инструментов:', tools.map(t => ({ name: t.name, id: t.id })))
                       setDetectedTools(tools)
-                      if (confidence) {
-                        setMatchPercentage(Math.round(confidence * 100))
-                      } else {
-                        updateMatchPercentage(tools)
-                      }
                       setScanComplete(true)
                       setIsScanning(false) // Сбрасываем статус сканирования
                     }}
@@ -468,12 +282,12 @@ export const InventoryPage = () => {
                 
                 {/* Счетчик найденных инструментов */}
                 {detectedTools.length > 0 && (
-                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in-up">
+                  <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg animate-fade-in-up">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-blue-800">
+                      <span className="text-sm font-medium text-green-800">
                         Найдено инструментов:
                       </span>
-                      <span className="text-lg font-bold text-blue-900">
+                      <span className="text-lg font-bold text-green-900">
                         {detectedTools.reduce((total, tool) => total + tool.quantity, 0)}
                       </span>
                     </div>
@@ -523,7 +337,7 @@ export const InventoryPage = () => {
                   {/* Кнопка добавления инструмента */}
                   <button
                     onClick={handleAddManual}
-                    className="w-full flex items-center justify-center space-x-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-green-400 hover:text-green-600 transition-colors"
                   >
                     <Plus size={16} />
                     <span>Добавить инструмент вручную</span>
@@ -538,7 +352,7 @@ export const InventoryPage = () => {
                     <Check size={16} />
                     <span>
                       {isScanning ? `Сканирование... (${uploadedImages.length} изображений)` : 
-                       scanComplete ? 'Завершить обслуживание' : 
+                       scanComplete ? 'Сканирование завершено' : 
                        `Завершить сканирование (${uploadedImages.length} изображений)`}
                     </span>
                   </button>
@@ -554,20 +368,6 @@ export const InventoryPage = () => {
           onClose={() => setIsAddToolModalOpen(false)}
           onAddTool={handleAddTool}
         />
-
-        {/* Диалог результатов выдачи инструментов */}
-        {showIssuanceDialog && issuanceResult && (
-          <IssuanceResultsDialog
-            result={issuanceResult}
-            onClose={handleIssuanceDialogClose}
-            onConfirm={handleIssuanceConfirm}
-            currentStep={3}
-            totalSteps={3}
-            photoFileName={uploadedImages[0]?.fileName || 'DSCN4946.JPG'}
-            uploadedImages={uploadedImages}
-            imageMLResults={imageMLResults}
-          />
-        )}
 
       </div>
     </div>

@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 const navigation = [
   { name: 'Главная', href: '/', icon: '/assets/menu.svg?v=2' },
   { name: 'Выдача', href: '/inventory', icon: '/assets/instruments.svg' },
-  { name: 'Сдача', href: '/tools', icon: '/assets/instruments.svg' },
+  { name: 'Сдача', href: '/return', icon: '/assets/instruments.svg' },
   { name: 'Отчёты', href: '/reports', icon: '/assets/report_icon.svg' },
   { name: 'Поддержка', href: '/support', icon: '/assets/support_logo.svg' },
 ]

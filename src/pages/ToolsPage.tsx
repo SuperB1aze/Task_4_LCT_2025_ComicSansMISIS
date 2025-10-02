@@ -2,28 +2,104 @@ import React, { useState, useRef } from 'react'
 import { Check, Plus, X } from 'lucide-react'
 import { ImageUploadWithRecognition, ImageUploadWithRecognitionRef } from '../components/ImageUploadWithRecognition'
 import { AddToolModal } from '../components/AddToolModal'
+import { IssuanceResultsDialog } from '../components/IssuanceResultsDialog'
 import { DetectedTool } from '../types'
 import { useToolRecognition } from '../hooks/useToolRecognition'
+import { useIssuanceStore } from '../store/issuanceStore'
+import { issuanceService, IssuanceResult } from '../services/issuanceService'
+
+// Компонент круговой диаграммы
+const CircularProgress = ({ percentage }: { percentage: number }) => {
+  const radius = 50
+  const strokeWidth = 10
+  const normalizedRadius = radius - strokeWidth / 2
+  const circumference = normalizedRadius * 2 * Math.PI
+  const strokeDasharray = `${circumference} ${circumference}`
+  const strokeDashoffset = circumference - (percentage / 100) * circumference
+
+  return (
+    <div className="relative w-24 h-24">
+      <svg
+        height={radius * 2}
+        width={radius * 2}
+        className="transform -rotate-90"
+      >
+        {/* Прогресс круг с градиентом */}
+        <defs>
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0066FF" />
+            <stop offset="100%" stopColor="#0046E2" />
+          </linearGradient>
+        </defs>
+        <circle
+          stroke="url(#progressGradient)"
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+          style={{ strokeDashoffset }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+          className="drop-shadow-lg"
+        />
+      </svg>
+      {/* Процент в центре */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span 
+          className="text-lg font-bold text-[#262626] leading-none ml-2.5 mt-1"
+          style={{ 
+            lineHeight: '1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {percentage}%
+        </span>
+      </div>
+    </div>
+  )
+}
 
 export const ToolsPage = () => {
+  const [searchCode, setSearchCode] = useState('')
   const [detectedTools, setDetectedTools] = useState<DetectedTool[]>([])
+  const [matchPercentage, setMatchPercentage] = useState(0) // Начальное значение 0%
   const [isScanning, setIsScanning] = useState(false)
   const [scanComplete, setScanComplete] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, fileName: string}>>([])
   const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false)
+  const [issuanceResult, setIssuanceResult] = useState<IssuanceResult | null>(null)
+  const [showIssuanceDialog, setShowIssuanceDialog] = useState(false)
   const imageUploadRef = useRef<ImageUploadWithRecognitionRef>(null)
 
   const {
     recognizeTools
   } = useToolRecognition()
 
+  const { showResultsDialog, setShowResultsDialog } = useIssuanceStore()
+
   // Принудительная очистка при загрузке страницы
   React.useEffect(() => {
     console.log('🔄 Страница сдачи загружена, очищаем все данные...')
     setDetectedTools([])
+    setMatchPercentage(0)
     setScanComplete(false)
     setIsScanning(false)
+    setUploadedImages([])
   }, [])
+
+  // Обновляем процент совпадения на основе найденных инструментов
+  const updateMatchPercentage = (tools: DetectedTool[]) => {
+    if (tools.length === 0) {
+      setMatchPercentage(0)
+    } else {
+      // Простая логика: чем больше инструментов найдено, тем выше процент
+      const basePercentage = Math.min(70 + (tools.length * 5), 98)
+      setMatchPercentage(basePercentage)
+    }
+  }
 
   // Обработка завершения сканирования
   const handleScanComplete = async () => {
@@ -36,11 +112,13 @@ export const ToolsPage = () => {
     console.log('📸 Количество изображений для обработки:', uploadedImages.length)
     console.log('🧹 Очищаем предыдущие результаты...')
     setDetectedTools([]) // Очищаем список инструментов
+    setMatchPercentage(0) // Сбрасываем процент совпадения
     setScanComplete(false) // Сбрасываем статус завершения
     setIsScanning(true) // Устанавливаем статус сканирования
     
     try {
       const allDetectedTools: DetectedTool[] = []
+      let processedImageUrl: string | undefined
       
       // Обрабатываем каждое изображение
       for (let i = 0; i < uploadedImages.length; i++) {
@@ -63,9 +141,28 @@ export const ToolsPage = () => {
       console.log('🎯 Общее количество найденных инструментов:', allDetectedTools.length)
       console.log('📋 Список всех инструментов:', allDetectedTools)
       
+      // Преобразуем DetectedTool в формат IssuanceResult
+      const issuanceResult: IssuanceResult = {
+        found_tools: allDetectedTools.map(tool => ({
+          id: parseInt(tool.id.replace(/\D/g, '')) || Math.random(),
+          name: tool.name,
+          serial_number: tool.serialNumber || '',
+          category: tool.category || 'Неизвестно'
+        })),
+        hand_check: allDetectedTools.length !== 11, // Если не 11 инструментов, нужна ручная проверка
+        processed_image_url: processedImageUrl,
+        ml_predictions: allDetectedTools.map(() => Math.random())
+      }
+      
       setDetectedTools(allDetectedTools)
+      setIssuanceResult(issuanceResult)
+      updateMatchPercentage(allDetectedTools)
       setScanComplete(true)
       setIsScanning(false)
+      
+      // Показываем диалог результатов
+      setShowIssuanceDialog(true)
+      setShowResultsDialog(true)
       
     } catch (error) {
       console.error('❌ Ошибка при запуске распознавания:', error)
@@ -103,6 +200,7 @@ export const ToolsPage = () => {
     
     // Добавляем к существующим инструментам
     setDetectedTools(prev => [...prev, newTool])
+    updateMatchPercentage([...detectedTools, newTool]) // Обновляем процент совпадения
     setScanComplete(true) // Помечаем как завершенное сканирование
   }
 
@@ -110,6 +208,7 @@ export const ToolsPage = () => {
   const handleFileRemoved = () => {
     console.log('🗑️ Фото удалено, сбрасываем состояние...')
     setDetectedTools([]) // Обнуляем список инструментов
+    setMatchPercentage(0) // Сбрасываем процент совпадения
     setScanComplete(false) // Сбрасываем статус завершения сканирования
     setIsScanning(false) // Сбрасываем статус сканирования
     setUploadedImages([]) // Очищаем список загруженных изображений
@@ -132,6 +231,7 @@ export const ToolsPage = () => {
       // Если удалили все изображения, сбрасываем состояние сканирования
       if (newList.length === 0) {
         setDetectedTools([])
+        setMatchPercentage(0)
         setScanComplete(false)
         setIsScanning(false)
       }
@@ -149,11 +249,29 @@ export const ToolsPage = () => {
       
       // Если удалили все инструменты, сбрасываем состояние сканирования
       if (newList.length === 0) {
+        setMatchPercentage(0)
         setScanComplete(false)
+      } else {
+        // Обновляем процент совпадения
+        updateMatchPercentage(newList)
       }
       
       return newList
     })
+  }
+
+  // Обработка закрытия диалога результатов
+  const handleIssuanceDialogClose = () => {
+    setShowIssuanceDialog(false)
+    setShowResultsDialog(false)
+  }
+
+  // Обработка подтверждения выдачи
+  const handleIssuanceConfirm = () => {
+    console.log('✅ Подтверждена выдача инструментов')
+    setShowIssuanceDialog(false)
+    setShowResultsDialog(false)
+    // Здесь можно добавить логику сохранения результатов в базу данных
   }
 
 
@@ -172,6 +290,63 @@ export const ToolsPage = () => {
         {/* Cards */}
         <div className="flex justify-center mb-8 mt-28">
           <div className="flex gap-8">
+            {/* Карточка с прогрессом */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[520px] h-[420px] flex flex-col zoom-in-animation" style={{ animationDelay: '0.3s' }}>
+              <div className="px-6 pt-1 pb-0.5 flex items-center justify-center flex-shrink-0">
+                <object 
+                  data="/assets/sovpadenia.svg" 
+                  type="image/svg+xml"
+                  width="480" 
+                  height="170"
+                  style={{ 
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
+                >
+                  <img 
+                    src="/assets/sovpadenia.svg" 
+                    alt="Совпадения" 
+                    width="480" 
+                    height="170"
+                  />
+                </object>
+              </div>
+              
+              <div className="px-6 pt-0 pb-4 flex flex-col items-center flex-1 justify-center">
+                <div className="flex flex-col items-center space-y-6">
+                  {/* Круговой прогресс */}
+                  <CircularProgress percentage={matchPercentage} />
+                  
+                  {/* Текст под прогрессом */}
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                      Совпадение с комплектом
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {matchPercentage === 0 
+                        ? 'Загрузите изображение для анализа' 
+                        : matchPercentage >= 90 
+                        ? 'Отличное совпадение!' 
+                        : matchPercentage >= 70 
+                        ? 'Хорошее совпадение' 
+                        : 'Требуется проверка'}
+                    </p>
+                  </div>
+                  
+                  {/* Дополнительная информация */}
+                  {detectedTools.length > 0 && (
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500">
+                        Найдено: {detectedTools.length} инструментов
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Стандартный комплект: 11 инструментов
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
             {/* Загрузить изображение Card */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden w-[520px] h-[420px] flex flex-col zoom-in-animation" style={{ animationDelay: '0.1s' }}>
               <div className="px-6 pt-1 pb-0.5 flex items-center justify-center flex-shrink-0">
@@ -204,6 +379,11 @@ export const ToolsPage = () => {
                       console.log('📊 Количество инструментов:', tools.length)
                       console.log('🔍 Детали инструментов:', tools.map(t => ({ name: t.name, id: t.id })))
                       setDetectedTools(tools)
+                      if (confidence) {
+                        setMatchPercentage(Math.round(confidence * 100))
+                      } else {
+                        updateMatchPercentage(tools)
+                      }
                       setScanComplete(true)
                       setIsScanning(false) // Сбрасываем статус сканирования
                     }}
@@ -365,6 +545,18 @@ export const ToolsPage = () => {
           onClose={() => setIsAddToolModalOpen(false)}
           onAddTool={handleAddTool}
         />
+
+        {/* Диалог результатов выдачи инструментов */}
+        {showIssuanceDialog && issuanceResult && (
+          <IssuanceResultsDialog
+            result={issuanceResult}
+            onClose={handleIssuanceDialogClose}
+            onConfirm={handleIssuanceConfirm}
+            currentStep={3}
+            totalSteps={3}
+            photoFileName={uploadedImages[0]?.fileName || 'DSCN4946.JPG'}
+          />
+        )}
 
       </div>
     </div>

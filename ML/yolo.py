@@ -2,6 +2,8 @@ import os
 import json
 import cv2
 import numpy as np
+import glob
+import time
 from ultralytics import YOLO
 
 
@@ -9,6 +11,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_PATH = os.path.join(BASE_DIR, "ML", "best.pt")
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
 
+def cleanup_old_files():
+    """Очищает старые временные файлы (старше 1 часа)"""
+    try:
+        current_time = time.time()
+        for pattern in ["predictions_*.json", "vis_result_*.jpg", "temp_*.*"]:
+            for file_path in glob.glob(os.path.join(MEDIA_DIR, pattern)):
+                file_age = current_time - os.path.getmtime(file_path)
+                if file_age > 3600:  # 1 час
+                    try:
+                        os.remove(file_path)
+                        print(f"🗑️ Удален старый файл: {file_path}")
+                    except:
+                        pass
+    except Exception as e:
+        print(f"⚠️ Ошибка при очистке старых файлов: {e}")
 
 os.makedirs(MEDIA_DIR, exist_ok=True)
 
@@ -66,10 +83,17 @@ def run_inference(image_path, thresholds=None, output_file=None, vis_output=None
     if thresholds is None:
         thresholds = class_thresholds
     
+    # Очищаем старые файлы перед обработкой
+    cleanup_old_files()
+    
+    # Генерируем уникальные имена файлов для каждого запроса
+    import uuid
+    unique_id = str(uuid.uuid4())
+    
     if output_file is None:
-        output_file = os.path.join(MEDIA_DIR, "predictions.json")
+        output_file = os.path.join(MEDIA_DIR, f"predictions_{unique_id}.json")
     if vis_output is None:
-        vis_output = os.path.join(MEDIA_DIR, "vis_result.jpg")
+        vis_output = os.path.join(MEDIA_DIR, f"vis_result_{unique_id}.jpg")
 
     current_model = _get_model()
     
