@@ -29,7 +29,7 @@ app.add_middleware(
 confidence_value: float = 0.5
 
 class ConfidenceRequest(BaseModel):
-    confidence: float = Field(..., gt=0, le=1, description="Значение уверенности от 0 до 1")
+    confidence: float = Field(..., description="Значение уверенности от 0 до 1 (не включая границы)")
 
 class ConfidenceResponse(BaseModel):
     success: bool
@@ -52,10 +52,11 @@ async def set_confidence(request: ConfidenceRequest):
     
     logger.info(f"POST /api/confidence/ - новое значение: {request.confidence}")
     
-    if request.confidence <= 0 or request.confidence > 1:
+    if request.confidence <= 0 or request.confidence >= 1:
+        logger.error(f"Ошибка валидации: значение {request.confidence} не в диапазоне (0, 1)")
         raise HTTPException(
             status_code=400,
-            detail="Значение уверенности должно быть от 0 до 1 (не включая 0)"
+            detail="Значение уверенности должно быть от 0 до 1 (не включая границы 0 и 1)"
         )
     
     old_value = confidence_value
