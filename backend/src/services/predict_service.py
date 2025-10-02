@@ -70,7 +70,8 @@ class PredictService:
         
         temp_path = os.path.join(media_dir, temp_filename)
         
-
+        await image.seek(0)
+        
         with open(temp_path, "wb") as buffer:
             content = await image.read()
             buffer.write(content)

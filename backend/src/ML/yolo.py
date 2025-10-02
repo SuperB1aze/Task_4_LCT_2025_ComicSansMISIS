@@ -7,15 +7,22 @@ import time
 from ultralytics import YOLO
 
 
-# ======= Настройки ускорения =======
-DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
-USE_HALF = torch.cuda.is_available()  # half только на CUDA
-if torch.cuda.is_available():
-    torch.backends.cudnn.benchmark = True  # быстрее при фиксированном размере
+# ======= Автовыбор бэкенда =======
+USE_CUDA = torch.cuda.is_available()
+DEVICE = "cuda:0" if USE_CUDA else "cpu"
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, "ML", "best_weights.pt")
+ONNX_PATH = os.path.join(BASE_DIR, "ML", "best.onnx")    # ONNX CPU
+PT_PATH = os.path.join(BASE_DIR, "ML", "best.pt")        # fallback PyTorch
 MEDIA_DIR = os.path.join(BASE_DIR, "media")
+
+# Автовыбор модели
+if not USE_CUDA and os.path.isfile(ONNX_PATH):
+    MODEL_PATH = ONNX_PATH
+    print("Использую ONNX (CPU):", MODEL_PATH)
+else:
+    MODEL_PATH = PT_PATH
+    print("Фолбэк на PyTorch .pt:", MODEL_PATH)
 
 
 os.makedirs(MEDIA_DIR, exist_ok=True)
@@ -30,12 +37,18 @@ def _get_model():
     """Ленивая загрузка модели"""
     global model, CLASS_NAMES
     if model is None:
-        model = YOLO(MODEL_PATH)
-        model.to(DEVICE)
-        try:
-            model.fuse()
-        except Exception:
-            pass
+        model = YOLO(MODEL_PATH, task="detect")
+        
+        # Только для .pt имеет смысл .to()/.fuse()
+        if MODEL_PATH.endswith(".pt"):
+            model.to(DEVICE)
+            if USE_CUDA:
+                torch.backends.cudnn.benchmark = True  # ускорение для .pt
+            try:
+                model.fuse()
+            except Exception:
+                pass
+        
         CLASS_NAMES = model.names
     return model
 
@@ -48,35 +61,37 @@ def run_inference(
     iou=0.6,
     imgsz=640,
     max_det=150,
-    device=DEVICE
 ):
     if output_file is None:
         output_file = os.path.join(MEDIA_DIR, "predictions.json")
     if vis_output is None:
         vis_output = os.path.join(MEDIA_DIR, "vis_result.jpg")
 
-    if isinstance(image_input, str):
-        source = image_input
-    elif isinstance(image_input, np.ndarray):
+    # source
+    if isinstance(image_input, (str, np.ndarray)):
         source = image_input
     else:
         raise TypeError("image_input должен быть str или np.ndarray")
 
     current_model = _get_model()
+    
+    use_half = USE_CUDA and MODEL_PATH.endswith(".pt")
 
-    # замер времени инференса
-    t0 = time.perf_counter()
+    # замер времени (без I/O синхронизируем CUDA)
+    _t0 = time.perf_counter()
     results = current_model.predict(
         source=source,
         imgsz=imgsz,
         conf=model_conf,
         iou=iou,
         max_det=max_det,
-        device=device,
-        half=USE_HALF,
+        device=DEVICE,
+        half=use_half,
         verbose=False
     )
-    dt = (time.perf_counter() - t0) * 1000
+    if USE_CUDA:
+        torch.cuda.synchronize()
+    dt = (time.perf_counter() - _t0) * 1000.0
 
     predictions = []
     for r in results:
