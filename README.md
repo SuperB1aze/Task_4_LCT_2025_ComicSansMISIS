@@ -6,3 +6,6 @@
 - [Backend документация](./backend/README.md) - Подробная документация по backend сервису
 - [ML исходный код](./backend/src/ML/ml-base/) - Jupyter notebooks с обучением и инференсом YOLO модели
 
+
+
+
