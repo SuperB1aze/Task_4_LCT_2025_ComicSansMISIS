@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="MVP-Template",
+    title="LCT.Comic-Sans",
     lifespan=lifespan
 )
 
