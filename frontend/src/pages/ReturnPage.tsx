@@ -3,8 +3,10 @@ import { Check, Plus, X } from 'lucide-react'
 import { ImageUploadWithRecognition, ImageUploadWithRecognitionRef } from '../components/ImageUploadWithRecognition'
 import { AddToolModal } from '../components/AddToolModal'
 import { ReturnResultsDialog } from '../components/ReturnResultsDialog'
+import { ConfidenceBlock } from '../components/ConfidenceBlock'
 import { DetectedTool } from '../types'
 import { useToolRecognition } from '../hooks/useToolRecognition'
+import { useConfidence } from '../hooks/useConfidence'
 import { useReturnStore } from '../store/returnStore'
 import { returnService, ReturnResult } from '../services/returnService'
 import { ComparisonResult } from '../store/returnStore'
@@ -21,6 +23,8 @@ export const ReturnPage = () => {
   const {
     recognizeTools
   } = useToolRecognition()
+
+  const { confidence, updateConfidence } = useConfidence()
 
   const { 
     showResultsDialog, 
@@ -471,6 +475,12 @@ export const ReturnPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Confidence Block */}
+            <ConfidenceBlock 
+              confidence={confidence}
+              onConfidenceChange={updateConfidence}
+            />
           </div>
         </div>
 
